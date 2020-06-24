@@ -9,13 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 using G3WebApiCore.Model.ApiDtos;
 using G3WebApiCore.Commom;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Cors;
 
 namespace G3WebApiCore.Controllers
 {
     /// <summary>
     /// 基础信息api
     /// </summary>
-    [Route("api/[controller]")]
+    [EnableCors("AllowCors")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class BaseInfoController : ControllerBase
     {

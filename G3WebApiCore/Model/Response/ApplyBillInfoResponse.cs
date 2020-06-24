@@ -100,6 +100,11 @@ namespace G3WebApiCore.Model.Response
         public string LinkType { get; set; }
 
         /// <summary>
+        /// 审批人信息
+        /// </summary>
+        public string ApprovalInfo { get; set; }
+
+        /// <summary>
         /// 开始时间
         /// </summary>
         public DateTime BeginDate { get; set; }
