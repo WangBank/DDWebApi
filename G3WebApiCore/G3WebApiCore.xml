@@ -1,0 +1,563 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>G3WebApiCore</name>
+    </assembly>
+    <members>
+        <member name="T:G3WebApiCore.Controllers.ApplyBillInfoController">
+            <summary>
+            统计单据信息api
+            </summary>
+        </member>
+        <member name="F:G3WebApiCore.Controllers.ApplyBillInfoController._sqlserverSql">
+            <summary>
+            主db操作
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.Controllers.ApplyBillInfoController.#ctor(IFreeSql{G3WebApiCore.Model.FreeSqlHelper.SqlServerFlag})">
+            <summary>
+            构造函数
+            </summary>
+            <param name="sqlserverSql"></param>
+        </member>
+        <member name="M:G3WebApiCore.Controllers.ApplyBillInfoController.GetInfo(G3WebApiCore.Model.Request.GetInfoRequest)">
+            <summary>
+            获得所有审批单据
+            </summary>
+            <param name="getInfoRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:G3WebApiCore.JWT.AuthTokenHeaderParameter">
+            <summary>
+            swagger 添加Token参数
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.AuthTokenHeaderParameter.Configuration">
+            <summary>
+            获取配置文件类
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.JWT.AuthTokenHeaderParameter.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="_configuration"></param>
+        </member>
+        <member name="M:G3WebApiCore.JWT.AuthTokenHeaderParameter.Apply(Microsoft.OpenApi.Models.OpenApiOperation,Swashbuckle.AspNetCore.SwaggerGen.OperationFilterContext)">
+            <summary>
+            实现方法
+            </summary>
+            <param name="operation"></param>
+            <param name="context"></param>
+        </member>
+        <member name="T:G3WebApiCore.JWT.ITokenHelper">
+            <summary>
+            token工具类的接口，方便使用依赖注入，很简单提供两个常用的方法
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.JWT.ITokenHelper.CreateToken``1(``0)">
+            <summary>
+            根据一个对象通过反射提供负载生成token
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.ITokenHelper.CreateToken(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            根据键值对提供负载生成token
+            </summary>
+            <param name="keyValuePairs"></param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.ITokenHelper.ValiToken(System.String,System.Func{System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean})">
+            <summary>
+            Token验证
+            </summary>
+            <param name="encodeJwt">token</param>
+            <param name="validatePayLoad">自定义各类验证； 是否包含那种申明，或者申明的值</param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.ITokenHelper.ValiTokenState(System.String,System.Func{System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean},System.Action{System.Collections.Generic.Dictionary{System.String,System.String}})">
+            <summary>
+            带返回状态的Token验证
+            </summary>
+            <param name="encodeJwt">token</param>
+            <param name="validatePayLoad">自定义各类验证； 是否包含那种申明，或者申明的值</param>
+            <param name="action"></param>
+            <returns></returns>
+        </member>
+        <member name="T:G3WebApiCore.JWT.JWTConfig">
+            <summary>
+            配置token生成信息
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.JWTConfig.Issuer">
+            <summary>
+            Token发布者
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.JWTConfig.Audience">
+            <summary>
+            oken接受者
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.JWTConfig.IssuerSigningKey">
+            <summary>
+            秘钥
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.JWTConfig.AccessTokenExpiresHours">
+            <summary>
+            过期时间
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.JWT.TnToken">
+            <summary>
+            存放Token 跟过期时间的类
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.TnToken.Token">
+            <summary>
+            token
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.JWT.TnToken.Expires">
+            <summary>
+            过期时间
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.JWT.TokenHelper">
+            <summary>
+            Token生成类
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.#ctor(Microsoft.Extensions.Options.IOptions{G3WebApiCore.JWT.JWTConfig})">
+            <summary>
+            构造函数
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.CreateToken``1(``0)">
+            <summary>
+            根据一个对象通过反射提供负载生成token
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.CreateToken(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            根据键值对提供负载生成token
+            </summary>
+            <param name="keyValuePairs"></param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.CreateTokenString(System.Collections.Generic.List{System.Security.Claims.Claim})">
+            <summary>
+            生成token
+            </summary>
+            <param name="claims">List的 Claim对象</param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.ValiToken(System.String,System.Func{System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean})">
+            <summary>
+            验证身份 验证签名的有效性
+            </summary>
+            <param name="encodeJwt"></param>
+            <param name="validatePayLoad">自定义各类验证； 是否包含那种申明，或者申明的值， </param>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.ToUnixEpochDate(System.DateTime)">
+            <summary>
+            时间转换
+            </summary>
+            <param name="date"></param>
+            <returns></returns>
+        </member>
+        <member name="M:G3WebApiCore.JWT.TokenHelper.ValiTokenState(System.String,System.Func{System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean},System.Action{System.Collections.Generic.Dictionary{System.String,System.String}})">
+            <summary>
+            验证状态
+            </summary>
+            <param name="encodeJwt"></param>
+            <param name="validatePayLoad"></param>
+            <param name="action"></param>
+            <returns></returns>
+        </member>
+        <member name="T:G3WebApiCore.JWT.TokenType">
+            <summary>
+            token验证结果
+            </summary>
+        </member>
+        <member name="F:G3WebApiCore.JWT.TokenType.Ok">
+            <summary>
+            成功
+            </summary>
+        </member>
+        <member name="F:G3WebApiCore.JWT.TokenType.Fail">
+            <summary>
+            失败
+            </summary>
+        </member>
+        <member name="F:G3WebApiCore.JWT.TokenType.Expired">
+            <summary>
+            过期
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalComment">
+            <summary>
+            审批意见
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalDate">
+            <summary>
+            审批时间精确到分钟
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalName">
+            <summary>
+            审批人姓名
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalStatus">
+            <summary>
+            审批状态 0：已发送，1同意 2驳回
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.BillClassid">
+            <summary>
+            审批表单ID号
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.BillNo">
+            <summary>
+            每个具体审批单编号
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.CommentsId">
+            <summary>
+            审批意见id，唯一值
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.NodeNumber">
+            <summary>
+            同ApprovalNode 中的NodeNumber
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.BillClassName">
+            <summary>
+            审批表达模板名称，例如出差申请表、差旅费报销表等
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.BilliClassid">
+            <summary>
+            审批表单模板编号，系统自动生成 guid
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.characterTypes">
+            <summary>
+            审批角色名称，例如发起人、部门领导、分管领导、公司领导、财务、出纳等
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.IsEnd">
+            <summary>
+            1表示该审批单流程结束，0未结束
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.nodeid">
+            <summary>
+            guid 审批节点表中主键 唯一值
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.NodeNumber">
+            <summary>
+            审批表单序号编号规则审批表单名称全拼首字母，例如出差申请，ccsq1…N
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.BillClass.Isrunning">
+            <summary>
+            1表示 启用，2正在运行，0停止 
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.BillClass.VisibleRange">
+            <summary>
+            可见范围主要包括所有员工，部门员工，角色，选择的人员等
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.Role.EmployCode">
+            <summary>
+            所属角色的员工工号
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.Role.Remarks">
+            <summary>
+            备注说明
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleGroupId">
+            <summary>
+            角色组名称
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleId">
+            <summary>
+            角色唯一标识 guid
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.RoleWithOrg.OrgCode">
+            <summary>
+            角色id
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.ApiDtos.RoleWithOrg.RoleId">
+            <summary>
+            部门编号
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.FreeSqlHelper.SqlServerFlag">
+            <summary>
+             sqlserver主标志类
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Request.GetInfoRequest">
+            <summary>
+            获取信息
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.BeginDate">
+            <summary>
+            开始日期
+            类似于 2020-06-18 14:04:28
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.EndDate">
+            <summary>
+            结束日期
+            类似于 2020-06-18 14:04:28
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.BillType">
+            <summary>
+            单据类型
+            1 差旅费 2 交通费 3 通讯费 4 招待费 5 其他费用 
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.ApprovalState">
+            <summary>
+            审批状态
+            0：正在进行 1:审批完成
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.LinkType">
+            <summary>
+            审批环节
+            1 直接主管,2 二级主管，3 区域财务，4 集团财务，5 集团领导，6 出纳
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.OverDayCount">
+            <summary>
+            超出时限天数
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.Page">
+            <summary>
+            页数
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Request.GetInfoRequest.Limit">
+            <summary>
+            每页的条数
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Response.ApplyBillResponse">
+            <summary>
+            response
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillResponse.code">
+            <summary>
+            0 成功
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillResponse.message">
+            <summary>
+            错误信息
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillResponse.data">
+            <summary>
+            主数据
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Response.ApplyBillInfoData">
+            <summary>
+            包含明细及总条数
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoData.Items">
+            <summary>
+            明细list
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoData.Total">
+            <summary>
+            总条数
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Response.ApplyBillInfo">
+            <summary>
+            统计费用通用返回类
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfo.BillNo">
+            <summary>
+            单据号
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfo.BillType">
+            <summary>
+            单据类型 1 差旅费 2 交通费 3 通讯费 4 招待费 5 其他费用 
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfo.BillState">
+            <summary>
+            审批状态 
+            0 正在进行 1 已完成
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfo.UsedTime">
+            <summary>
+            消耗总时长(单位，小时)
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfo.Details">
+            <summary>
+            明细列表
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Response.ApplyBillInfoDetail">
+            <summary>
+            审批流程环节detail
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoDetail.LinkType">
+            <summary>
+            审批环节
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoDetail.BeginDate">
+            <summary>
+            开始时间
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoDetail.EndDate">
+            <summary>
+            结束时间
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoDetail.UsedTime">
+            <summary>
+            消耗总时长(单位，小时)
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.ApplyBillInfoDetail.Percentage">
+            <summary>
+            时长占比(%)
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Model.Response.CommonResponse">
+            <summary>
+            通用信息返回类
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.CommonResponse.code">
+            <summary>
+            0 成功
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.CommonResponse.message">
+            <summary>
+            信息
+            </summary>
+        </member>
+        <member name="P:G3WebApiCore.Model.Response.CommonResponse.data">
+            <summary>
+            主数据
+            </summary>
+        </member>
+        <member name="T:G3WebApiCore.Startup">
+            <summary>
+            主机启动后配置类
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.Startup.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="P:G3WebApiCore.Startup.Configuration">
+            <summary>
+            读取配置文件
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+             This method gets called by the runtime. Use this method to add services to the container.
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:G3WebApiCore.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)">
+            <summary>
+             This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+        </member>
+        <member name="T:G3WebApiCore.SwaggerModel.ApplyTagDescriptions">
+            <summary>
+            Swagger description
+            </summary>
+        </member>
+        <member name="M:G3WebApiCore.SwaggerModel.ApplyTagDescriptions.Apply(Microsoft.OpenApi.Models.OpenApiDocument,Swashbuckle.AspNetCore.SwaggerGen.DocumentFilterContext)">
+            <summary>
+            apply 方法
+            </summary>
+            <param name="swaggerDoc"></param>
+            <param name="context"></param>
+        </member>
+        <member name="T:JWTToken.Filter.TokenFilter">
+            <summary>
+            Token过滤器
+            </summary>
+        </member>
+        <member name="P:JWTToken.Filter.TokenFilter.Configuration">
+            <summary>
+            获取配置文件类
+            </summary>
+        </member>
+        <member name="M:JWTToken.Filter.TokenFilter.#ctor(G3WebApiCore.JWT.ITokenHelper,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            构造函数
+            </summary>
+            <param name="_tokenHelper"></param>
+            <param name="_configuration"></param>
+        </member>
+        <member name="M:JWTToken.Filter.TokenFilter.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>
+            执行完成
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:JWTToken.Filter.TokenFilter.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            执行之前
+            </summary>
+            <param name="context"></param>
+        </member>
+    </members>
+</doc>

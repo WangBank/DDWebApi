@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{14766C48-D32C-4394-A4EB-6DA027A45FD9}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>G3WebERPApi</RootNamespace>
+    <AssemblyName>G3WebERPApi</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BankDbHelper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>dll\BankDbHelper.dll</HintPath>
+    </Reference>
+    <Reference Include="COSXML">
+      <HintPath>dll\COSXML.dll</HintPath>
+    </Reference>
+    <Reference Include="DbHelper, Version=1.0.1.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>dll\DbHelper.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>dll\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>dll\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Global.asax" />
+    <Compile Include="Model\CommonModel.cs" />
+    <Compile Include="Model\ProcessModel.cs" />
+    <Compile Include="Model\RoleModel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Approval\CashierPay.ashx.cs">
+      <DependentUpon>CashierPay.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\ChangeSQDetails.ashx.cs">
+      <DependentUpon>ChangeSQDetails.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\ChangeSQRC.cs" />
+    <Compile Include="Approval\CLFBXSP.ashx.cs">
+      <DependentUpon>CLFBXSP.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\CLFBXSQ.ashx.cs">
+      <DependentUpon>CLFBXSQ.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\CloudApproval.cs" />
+    <Compile Include="Approval\GetBillName.ashx.cs">
+      <DependentUpon>GetBillName.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\MedConfigAuditing.ashx.cs">
+      <DependentUpon>MedConfigAuditing.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\MedConfigReq.ashx.cs">
+      <DependentUpon>MedConfigReq.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\MulCLFBX.cs" />
+    <Compile Include="Approval\OtherCostSP.ashx.cs">
+      <DependentUpon>OtherCostSP.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\OtherCostSQ.ashx.cs">
+      <DependentUpon>OtherCostSQ.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\OtherCostSQModel.cs" />
+    <Compile Include="Approval\ProcessInfo.ashx.cs">
+      <DependentUpon>ProcessInfo.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\ProcessSave.ashx.cs">
+      <DependentUpon>ProcessSave.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\PSP.cs" />
+    <Compile Include="Approval\SetSignFile.ashx.cs">
+      <DependentUpon>SetSignFile.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\TAMcs.cs" />
+    <Compile Include="Approval\TAMultistage.ashx.cs">
+      <DependentUpon>TAMultistage.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\TongXunLu.ashx.cs">
+      <DependentUpon>TongXunLu.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\TSPM.ashx.cs">
+      <DependentUpon>TSPM.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\TxfjtfXdfSP.ashx.cs">
+      <DependentUpon>TxfjtfXdfSP.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Approval\TxfJtfZdfSQ.ashx.cs">
+      <DependentUpon>TxfJtfZdfSQ.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\CDChange.cs" />
+    <Compile Include="Common\CLFBXDetailChange.ashx.cs">
+      <DependentUpon>CLFBXDetailChange.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\CommonHelper.cs" />
+    <Compile Include="Common\GetMulParams.cs" />
+    <Compile Include="Common\ServiceLog.ashx.cs">
+      <DependentUpon>ServiceLog.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\SL.cs" />
+    <Compile Include="FileSign.ashx.cs">
+      <DependentUpon>FileSign.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="GetApprovalRefuseData.cs" />
+    <Compile Include="GetUser.ashx.cs">
+      <DependentUpon>GetUser.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Login.ashx.cs">
+      <DependentUpon>Login.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="MD5Encrypt.ashx.cs">
+      <DependentUpon>MD5Encrypt.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Model\ApprovalOverViewModel.cs" />
+    <Compile Include="Model\BillInfoModel.cs" />
+    <Compile Include="MULSelect.ashx.cs">
+      <DependentUpon>MULSelect.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Select.ashx.cs">
+      <DependentUpon>Select.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Sign.ashx.cs">
+      <DependentUpon>Sign.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="SignClass.cs" />
+    <Compile Include="TokenClass.cs" />
+    <Compile Include="ToolsClass.cs" />
+    <Compile Include="Travel\CCSQ.cs" />
+    <Compile Include="Travel\CLFBX.cs" />
+    <Compile Include="Travel\SelApproval.ashx.cs">
+      <DependentUpon>SelApproval.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Travel\TravelApproval.cs" />
+    <Compile Include="Travel\TxfClass.cs" />
+    <Compile Include="Travel\XXTZ.cs" />
+    <Compile Include="user\GetUserId.cs" />
+    <Compile Include="user\GetUserXq.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Login.ashx" />
+    <Content Include="MD5Encrypt.ashx" />
+    <Content Include="GetUser.ashx" />
+    <Content Include="FileSign.ashx" />
+    <Content Include="ClassDiagram1.cd" />
+    <Content Include="Approval\GetBillName.ashx" />
+    <Content Include="Approval\ProcessInfo.ashx" />
+    <Content Include="Approval\ProcessSave.ashx" />
+    <Content Include="Approval\TAMultistage.ashx" />
+    <Content Include="Approval\TSPM.ashx" />
+    <Content Include="MULSelect.ashx" />
+    <Content Include="Approval\CLFBXSQ.ashx" />
+    <Content Include="Approval\CLFBXSP.ashx" />
+    <Content Include="Approval\TxfJtfZdfSQ.ashx" />
+    <Content Include="Approval\TxfjtfXdfSP.ashx" />
+    <Content Include="Approval\TongXunLu.ashx" />
+    <Content Include="Common\ServiceLog.ashx" />
+    <Content Include="Approval\ChangeSQDetails.ashx" />
+    <Content Include="libman.json" />
+    <Content Include="Common\CLFBXDetailChange.ashx" />
+    <Content Include="Approval\OtherCostSQ.ashx" />
+    <Content Include="Approval\OtherCostSP.ashx" />
+    <Content Include="Approval\CashierPay.ashx" />
+    <Content Include="Approval\MedConfigReq.ashx" />
+    <Content Include="Approval\MedConfigAuditing.ashx" />
+    <Content Include="Approval\SetSignFile.ashx" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\RomensWebApi.pubxml" />
+    <Content Include="Sign.ashx" />
+    <Content Include="Select.ashx" />
+    <Content Include="Travel\SelApproval.ashx" />
+    <Content Include="Web.config" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>19324</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:19324/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

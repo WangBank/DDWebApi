@@ -1,0 +1,20 @@
+2020-02-22 17:21:19  ;
+IP地址为：::1;
+ 访问接口地址：http://localhost:19324/;
+入参：
+2020-02-22 17:21:28  ;
+IP地址为：::1;
+ 访问接口地址：http://localhost:19324/MedConfigReq;
+入参：
+2020-02-22 17:21:39  ;
+IP地址为：::1;
+ 访问接口地址：http://localhost:19324/MedConfigReq;
+入参：
+2020-02-22 17:21:42  ;
+IP地址为：::1;
+ 访问接口地址：http://localhost:19324/MedConfigReq;
+入参：
+2020-02-22 17:21:53  ;
+IP地址为：::1;
+ 访问接口地址：http://localhost:19324/MedConfigReq;
+入参：
