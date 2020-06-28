@@ -7,9 +7,9 @@ namespace G3WebApiCore.Model.Request
 {
 
     /// <summary>
-    /// 获取信息
+    /// 获取审批人信息request
     /// </summary>
-    public class GetInfoRequest
+    public class ApproverRequest
     {
         /// <summary>
         /// 开始日期
@@ -23,25 +23,15 @@ namespace G3WebApiCore.Model.Request
         /// </summary>
         public DateTime EndDate { get; set; }
 
-        /// <summary>
-        /// 单据类型
-        /// 0 全部 1 差旅费 2 交通费 3 通讯费 4 招待费 5 其他费用 
-        /// </summary>
-        public int BillType { get; set; }
-        /// <summary>
-        /// 审批状态
-        /// 0：正在进行 1:审批完成
-        /// </summary>
-        public int ApprovalState { get; set; }
 
         /// <summary>
-        /// 审批环节
+        /// 审批环节具体名称，例如西南财务 总部财务 等
         /// 由接口获得
         /// </summary>
-        public string LinkTypeName { get; set; }
+        public string LinkDetailName { get; set; }
 
         /// <summary>
-        /// 超出时限天数
+        /// 超出时限天数，平均
         /// </summary>
         public int OverDayCount { get; set; }
 

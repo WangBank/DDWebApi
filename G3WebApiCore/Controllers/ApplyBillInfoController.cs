@@ -461,13 +461,9 @@ namespace G3WebApiCore.Controllers
         private async Task<List<ApplyBillInfoDetail>> getApprovalDataAsync(string billNo, DateTime billDate, string allUsedTime, GetInfoRequest getInfoRequest)
         {
             List<ApplyBillInfoDetail> applyBillInfoDetails = new List<ApplyBillInfoDetail>();
-
             //查询审批明细
             var commentList =  _sqlserverSql.Select<ApprovalComments>();
-
-
             //先把直接主管和二级主管加上
-
             var leaderfrot = commentList.Where(
                 o =>
                 o.BillNo == billNo
@@ -484,19 +480,15 @@ namespace G3WebApiCore.Controllers
                 string Percentage = "";
                 if (i==0)
                 {
-                   
                     usedTime = leader[i].ApprovalStatus == 0 ? "正在进行" : (leader[i].ApprovalDate.Value.Subtract(billDate).TotalSeconds).ToString();
                      usedTimeFormat = leader[i].ApprovalStatus == 0 ? "正在进行":CommonHelper.GetUsedTime(leader[i].ApprovalDate.Value,billDate);
                     Percentage = (usedTime != "正在进行" && allUsedTime != "正在进行" ?  Math.Abs(double.Parse(usedTime)/double.Parse(allUsedTime)).ToString("P") : "正在进行");
-                   
                 }
                 else
                 {
                     usedTime = leader[i].ApprovalStatus == 0 ? "正在进行" : (leader[i].ApprovalDate.Value.Subtract(leader[i - 1].ApprovalDate.Value).TotalSeconds).ToString();
                     usedTimeFormat = leader[i].ApprovalStatus == 0 ? "正在进行":CommonHelper.GetUsedTime(leader[i].ApprovalDate.Value,leader[i - 1].ApprovalDate.Value);
                     Percentage = (usedTime != "正在进行" && allUsedTime != "正在进行" ? Math.Abs(double.Parse(usedTime) / double.Parse(allUsedTime)).ToString("P") : "正在进行");
-
-                    
                 }
                 if (usedTime == "正在进行")
                 {
@@ -517,10 +509,8 @@ namespace G3WebApiCore.Controllers
 
                 });
             }
-
             //查询角色组
             var roles = await _sqlserverSql.Select<RoleGroup>().ToListAsync();
-
             for (int i = 0; i < roles.Count; i++)
             {
                 //查当前角色的角色
@@ -541,7 +531,6 @@ namespace G3WebApiCore.Controllers
                        rolename.Contains(o.AType)
                      ).OrderBy(c => c.ApprovalDate);
                     CommonHelper.TxtLog("查询角色相关", roleApprovalfront.ToSql());
-
                     //查询单据中的在此角色组中的流程
                     var roleApproval = await roleApprovalfront.ToListAsync();
                     //有这个角色组的角色的审批流程
@@ -549,7 +538,6 @@ namespace G3WebApiCore.Controllers
                     {
                         for (int j = 0; j < roleApproval.Count; j++)
                         {
-                           
                             string usedTime = "";
                             string Percentage = "";
                             DateTime BeginDate;
@@ -570,16 +558,12 @@ namespace G3WebApiCore.Controllers
                                 Percentage = (usedTime != "正在进行" && allUsedTime != "正在进行" ? Math.Abs(double.Parse(usedTime) / double.Parse(allUsedTime)).ToString("P") : "正在进行");
                                 BeginDate = billDate;
                             }
-
                             endDate = roleApproval[j].ApprovalDate.Value;
                             var isExistRole = applyBillInfoDetails.Where(r => r.LinkType == roles[i].RoleGroupName);
-
                             //判断需不需要新增
                             if (isExistRole.Any())
                             {
-                                
                                 var existIndex = applyBillInfoDetails.IndexOf(isExistRole.FirstOrDefault());
-                                
                                 if (usedTime=="正在进行" || applyBillInfoDetails[existIndex].UsedTime == "正在进行" ||allUsedTime == "正在进行")
                                 {
                                     ApprovalInfo = ApprovalInfo + $",{roleApproval[j].ApprovalName}未审批完成，已持续{CommonHelper.GetUsedTime(DateTime.Now, roleApproval[j].ApprovalDate.Value)}";
@@ -589,7 +573,6 @@ namespace G3WebApiCore.Controllers
                                 }
                                 else //新旧都是 有具体数值的
                                 {
-                                   
                                     endDate = roleApproval[j].ApprovalDate.Value >= applyBillInfoDetails[existIndex].EndDate ? roleApproval[j].ApprovalDate.Value : applyBillInfoDetails[existIndex].EndDate;
                                     applyBillInfoDetails[existIndex].UsedTime = CommonHelper.GetUsedTime(endDate, BeginDate);
                                     applyBillInfoDetails[existIndex].Percentage = Math.Abs(endDate.Subtract(BeginDate).TotalSeconds / double.Parse(allUsedTime)).ToString("P");
@@ -597,7 +580,6 @@ namespace G3WebApiCore.Controllers
                                     ApprovalInfo = ApprovalInfo + $",{roleApproval[j].ApprovalName}审批此单据消耗时间:{CommonHelper.GetUsedTime(roleApproval[j].ApprovalDate.Value, BeginDate)}";
                                     applyBillInfoDetails[existIndex].ApprovalInfo = ApprovalInfo;
                                 }
-                                
                             }
                             else
                             {

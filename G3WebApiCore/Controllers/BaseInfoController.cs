@@ -38,7 +38,7 @@ namespace G3WebApiCore.Controllers
 
 
         /// <summary>
-        /// 获取审批流程id及名称
+        /// 获取审批流程id及名称，总体环节，比如区域财务、总部财务
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -48,14 +48,20 @@ namespace G3WebApiCore.Controllers
             try
             {
                 List<LinkInfoData> data = new List<LinkInfoData>();
+
+                data.Add(new LinkInfoData
+                {
+                    Id = "0EB1986209F5447DB5FF97061D78FD75",
+                    Name = "全部流程"
+                });
                 data.Add(new LinkInfoData { 
-                    Id = Guid.NewGuid().ToString("N"),
+                    Id = "BFEBBEBA56B14BBEADF95CA8136D8DDE",
                     Name = "直接主管"
                 });
 
                 data.Add(new LinkInfoData
                 {
-                    Id = Guid.NewGuid().ToString("N"),
+                    Id = "6C19281A0DAF46F3BE7EAEC4BB9753B8",
                     Name = "二级主管"
                 });
                 
@@ -80,11 +86,70 @@ namespace G3WebApiCore.Controllers
                 result.message = "获取信息出错!";
                 _ = Task.Run(() =>
                 {
-                    CommonHelper.TxtLog("获取审批流程", JsonConvert.SerializeObject(result));
+                    CommonHelper.TxtLog("获取审批流程", $"{JsonConvert.SerializeObject(result)},\r\n错误信息:{JsonConvert.SerializeObject(ex)}");
                 });
                 return result;
             }
            
+        }
+
+
+        /// <summary>
+        ///  审批环节具体明细,具体到每个角色名称，比如西南财务、总部财务等
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<LinkInfoResponse> GetLinkDetailInfo()
+        {
+            var result = new LinkInfoResponse();
+            try
+            {
+                List<LinkInfoData> data = new List<LinkInfoData>();
+
+                data.Add(new LinkInfoData
+                {
+                    Id = "0EB1986209F5447DB5FF97061D78FD75",
+                    Name = "全部流程"
+                });
+                data.Add(new LinkInfoData
+                {
+                    Id = "BFEBBEBA56B14BBEADF95CA8136D8DDE",
+                    Name = "直接主管"
+                });
+
+                data.Add(new LinkInfoData
+                {
+                    Id = "6C19281A0DAF46F3BE7EAEC4BB9753B8",
+                    Name = "二级主管"
+                });
+
+                var grouplist = await _sqlserverSql.Select<Role>().Where(r => r.Status == 1).ToListAsync();
+                foreach (var item in grouplist)
+                {
+                    data.Add(new LinkInfoData
+                    {
+                        Id = item.RoleGroupId,
+                        Name = item.RoleName
+                    });
+                }
+                return new LinkInfoResponse
+                {
+                    code = 0,
+                    data = data,
+                    message = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                result.code = -1;
+                result.message = "获取信息出错!";
+                _ = Task.Run(() =>
+                {
+                    CommonHelper.TxtLog("获取审批流程", $"{JsonConvert.SerializeObject(result)},\r\n错误信息:{JsonConvert.SerializeObject(ex)}");
+                });
+                return result;
+            }
+
         }
     }
 }

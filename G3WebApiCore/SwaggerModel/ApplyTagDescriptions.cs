@@ -21,7 +21,9 @@ namespace G3WebApiCore.SwaggerModel
         {
             swaggerDoc.Tags = new List<OpenApiTag>
             {
-                new OpenApiTag{Name ="ApplyBillInfo",Description="报销单据统计api"}
+                new OpenApiTag{Name ="ApplyBillInfo",Description="按单据统计api"},
+                new OpenApiTag{Name ="ApproverInfo",Description="按审批人统计api"},
+                 new OpenApiTag{Name ="BaseInfo",Description="基础信息api"}
             };
         }
     }

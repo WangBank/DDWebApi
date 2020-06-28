@@ -106,8 +106,8 @@ namespace G3WebApiCore
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "钉钉审批单据统计Api");
                 c.RoutePrefix = "";//设置根节点访问
-                //c.DocExpansion(DocExpansion.None);//折叠
-                //c.DefaultModelsExpandDepth(-1);//不显示Schemas
+                c.DocExpansion(DocExpansion.None);//折叠
+                c.DefaultModelsExpandDepth(-1);//不显示Schemas
             });
 
 
