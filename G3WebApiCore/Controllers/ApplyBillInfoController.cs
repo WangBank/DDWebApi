@@ -45,8 +45,6 @@ namespace G3WebApiCore.Controllers
         public async Task<ApplyBillResponse> GetInfo(GetInfoRequest getInfoRequest)
         {
             var result = new ApplyBillResponse();
-            totals = 0;
-            amounttotals = 0;
             if (getInfoRequest == null)
             {
                 result.code = -1;
@@ -99,13 +97,14 @@ namespace G3WebApiCore.Controllers
                         });
                         return result;
                 }
-
+                var totals = mainData.Count();
                 result.code = 0;
                 result.message = "获取数据成功";
+                var maindataFy = mainData.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit).ToList();
                 result.data = new ApplyBillInfoData
                 {
-                    Total = getInfoRequest.BillType == 0 ? amounttotals : totals,
-                    Items = mainData
+                    Total = totals,
+                    Items = maindataFy
                 };
                 _ = Task.Run(() =>
                 {
@@ -130,9 +129,6 @@ namespace G3WebApiCore.Controllers
 
         }
 
-        private long totals { get; set; }
-        private long amounttotals { get; set; }
-
         /// <summary>
         /// 获得全部单据数据
         /// </summary>
@@ -149,16 +145,8 @@ namespace G3WebApiCore.Controllers
             applyBillInfos.AddRange(await GetJtfDataAsync(getInfoRequest));
             applyBillInfos.AddRange(await GetTxfDataAsync(getInfoRequest));
             applyBillInfos.AddRange(await GetZdfDataAsync(getInfoRequest));
-            applyBillInfos.AddRange(await GetQtfDataAsync(getInfoRequest));
-            amounttotals = applyBillInfos.Count;
-            var tempBill = applyBillInfos;
-            if (amountpage != 0 && amountlimit != 0)
-            {
-                tempBill = tempBill.Skip((amountpage - 1) * amountlimit).Take(amountlimit).ToList();
-
-            }
-            
-            return tempBill;
+            applyBillInfos.AddRange(await GetQtfDataAsync(getInfoRequest));      
+            return applyBillInfos;
         }
 
         /// <summary>
@@ -186,10 +174,7 @@ namespace G3WebApiCore.Controllers
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
             );
           
-            var Main = MainWfy.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit);
-            string Mainsql = Main.ToSql();
-            CommonHelper.TxtLog("查询差旅费", Mainsql);
-            var MainData = await Main.ToListAsync();
+            var MainData = await MainWfy.ToListAsync();
 
             if (MainData.Count==0)
             {
@@ -214,7 +199,6 @@ namespace G3WebApiCore.Controllers
             var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
             applyBillInfos.Clear();
             applyBillInfos.AddRange(nowList);
-            totals = applyBillInfos.Count();
             return applyBillInfos;
         }
 
@@ -246,10 +230,7 @@ namespace G3WebApiCore.Controllers
                 o.FeeType == "01"
             );
           
-            var Main = MainWfy.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit);
-            string Mainsql = Main.ToSql();
-            CommonHelper.TxtLog("查询交通费", Mainsql);
-            var clfMainData = await Main.ToListAsync();
+            var clfMainData = await MainWfy.ToListAsync();
 
             if (clfMainData.Count == 0)
             {
@@ -306,10 +287,8 @@ namespace G3WebApiCore.Controllers
                 o.FeeType == "02"
             );
            
-            var Main = MainWfy.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit);
-            string Mainsql = Main.ToSql();
-            CommonHelper.TxtLog("查询通讯费", Mainsql);
-            var clfMainData = await Main.ToListAsync();
+
+            var clfMainData = await MainWfy.ToListAsync();
 
             if (clfMainData.Count == 0)
             {
@@ -364,10 +343,8 @@ namespace G3WebApiCore.Controllers
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
             );
            
-            var Main = MainWfy.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit);
-            string Mainsql = Main.ToSql();
-            CommonHelper.TxtLog("查询招待费", Mainsql);
-            var clfMainData = await Main.ToListAsync();
+
+            var clfMainData = await MainWfy.ToListAsync();
 
             if (clfMainData.Count == 0)
             {
@@ -421,10 +398,8 @@ namespace G3WebApiCore.Controllers
                  &&
                 o.FeeType == "07"
             );
-            var Main = MainWfy.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit);
-            string Mainsql = Main.ToSql();
-            CommonHelper.TxtLog("查询其他费用", Mainsql);
-            var clfMainData = await Main.ToListAsync();
+
+            var clfMainData = await MainWfy.ToListAsync();
 
             if (clfMainData.Count == 0)
             {
