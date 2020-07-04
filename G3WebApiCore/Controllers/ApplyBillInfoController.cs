@@ -60,56 +60,61 @@ namespace G3WebApiCore.Controllers
             {
                 CommonHelper.TxtLog("统计费用信息入参", JsonConvert.SerializeObject(getInfoRequest));
                 var mainData = new List<ApplyBillInfo>();
-
+                var tempList = new List<ApplyBillInfo>();
+                if (getInfoRequest.Page == 0 || getInfoRequest.Limit == 0)
+                {
+                    getInfoRequest.Page = 1;
+                    getInfoRequest.Limit = 10;
+                }
+                long total = 0;
+                long totalTemp = 0;
+                var yzcl = (totalTemp, tempList);
+                var amountpage = getInfoRequest.Page;
+                var amountlimit = getInfoRequest.Limit;
                 //判断选择的单据类型
                 switch (getInfoRequest.BillType)
                 {
                     case 0:
                         //全部单据
-                        mainData = await GetAllDataAsync(getInfoRequest);
+                        yzcl = await GetAllDataAsync(getInfoRequest);
                         break;
                     case 1:
                         //差旅费
-                        mainData = await GetClfDataAsync(getInfoRequest);
+                        yzcl = await GetClfDataAsync(getInfoRequest);
                         break;
                     case 2:
                         //交通费
-                        mainData = await GetJtfDataAsync(getInfoRequest);
+                        yzcl = await GetJtfDataAsync(getInfoRequest);
                         break;
                     case 3:
                         //通讯费
-                        mainData = await GetTxfDataAsync(getInfoRequest);
+                        yzcl = await GetTxfDataAsync(getInfoRequest);
                         break;
                     case 4:
                         //招待费
-                        mainData = await GetZdfDataAsync(getInfoRequest);
+                        yzcl = await GetZdfDataAsync(getInfoRequest);
                         break;
                     case 5:
                         //其他费用
-                        mainData = await GetQtfDataAsync(getInfoRequest);
+                        yzcl = await GetQtfDataAsync(getInfoRequest);
                         break;
                     default:
                         result.code = -1;
                         result.message = "BillType值不对,请检查!";
-                        _ = Task.Run(() =>
-                        {
-                            CommonHelper.TxtLog("统计费用信息出参", JsonConvert.SerializeObject(result));
-                        });
                         return result;
                 }
-                var totals = mainData.Count();
+
+                mainData = yzcl.tempList;
+                total = yzcl.totalTemp;
                 result.code = 0;
+                
                 result.message = "获取数据成功";
-                var maindataFy = mainData.Skip((getInfoRequest.Page - 1) * getInfoRequest.Limit).Take(getInfoRequest.Limit).ToList();
+               
                 result.data = new ApplyBillInfoData
                 {
-                    Total = totals,
-                    Items = maindataFy
+                    Total = total,
+                    Items = mainData
                 };
-                _ = Task.Run(() =>
-                {
-                    CommonHelper.TxtLog("统计费用信息出参", JsonConvert.SerializeObject(result));
-                });
                 return result;
 
             }
@@ -129,24 +134,80 @@ namespace G3WebApiCore.Controllers
 
         }
 
+
+
         /// <summary>
         /// 获得全部单据数据
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetAllDataAsync(GetInfoRequest getInfoRequest)
+        private async Task<(long total, List<ApplyBillInfo> applyBillInfos)> GetAllDataAsync(GetInfoRequest getInfoRequest)
         {
-            var amountpage = getInfoRequest.Page;
-            var amountlimit = getInfoRequest.Limit;
-            getInfoRequest.Page = 0;
-            getInfoRequest.Limit = 0;
+
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
-            applyBillInfos.AddRange(await GetClfDataAsync(getInfoRequest));
-            applyBillInfos.AddRange(await GetJtfDataAsync(getInfoRequest));
-            applyBillInfos.AddRange(await GetTxfDataAsync(getInfoRequest));
-            applyBillInfos.AddRange(await GetZdfDataAsync(getInfoRequest));
-            applyBillInfos.AddRange(await GetQtfDataAsync(getInfoRequest));      
-            return applyBillInfos;
+
+            //var MainDatamain =  _sqlserverSql.Select<ExpeTrav, ExpeEnteMent, ExpeOther>().Where(
+            //   (a, b, c) => !string.IsNullOrEmpty(a.DDOperatorId) && !string.IsNullOrEmpty(b.DDOperatorId) && !string.IsNullOrEmpty(c.DDOperatorId)
+            //    &&
+            //    (
+            //        (a.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.BillDate)
+            //        ||
+            //        (a.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.AuditingDate)
+            //        ||
+            //        (a.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= a.AuditingDate)
+            //    )
+            //    &&
+            //    a.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
+            //).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
+
+            //var MainDatasql = MainDatamain.ToSql();
+            //var MainData = await MainDatamain.ToListAsync((a, b, c) =>new { a , b, c });
+            // List<(int, string, string)> MainData = _sqlserverSql.Ado.Query<(int, string, string)>("select BillNo,BillDate,ApplPers,InsteadOperatorGuid from ()");
+
+            var MainDatamain = _sqlserverSql
+                .Select<FYModel>()
+               .WithSql("select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeTrav ")
+               .WithSql("select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeEnteMent")
+               .WithSql("select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeOther")
+               .Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
+            var MainDatasql = MainDatamain.ToSql();
+            var MainData = await MainDatamain.ToListAsync();
+            if (MainData.Count == 0)
+            {
+                return (0, applyBillInfos);
+            }
+
+            foreach (var item in MainData)
+            {
+                {
+                    var commentsNow = await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o => o.ApprovalDate);
+                    if (commentsNow.HasValue || getInfoRequest.ApprovalState == 0)
+                    {
+                        string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                           commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                        string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                            (commentsNow.Value, item.BillDate) : "正在进行";
+
+                        applyBillInfos.Add(new ApplyBillInfo
+                        {
+                            ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                            BillDate = item.BillDate,
+                            BillState = getInfoRequest.ApprovalState,
+                            BillNo = item.BillNo,
+                            BillType = 1,
+                            Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                            UsedTime = usedTimeFormat
+                        });
+                    }
+                    else
+                    {
+                        total = total - 1;
+                    }
+                }
+ 
+            }
+
+            return (total, applyBillInfos);
         }
 
         /// <summary>
@@ -154,14 +215,12 @@ namespace G3WebApiCore.Controllers
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetClfDataAsync(GetInfoRequest getInfoRequest)
+        private async  Task<(long total,List<ApplyBillInfo> applyBillInfos)> GetClfDataAsync(GetInfoRequest getInfoRequest)
         {
-
-            var flowEmployee = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false).ToListAsync();
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
-            // 提交时间在条件中间  或者 结束时间在条件中  或者 他俩都在条件外
-            var MainWfy = _sqlserverSql.Select<ExpeTrav>().Where(
-               o => _sqlserverSql.Select<ApprovalComments>().As("b").Where(b => b.BillNo == o.BillNo).Any()
+
+            var MainData = await _sqlserverSql.Select<ExpeTrav>().Where(
+               o => !string.IsNullOrEmpty(o.DDOperatorId)
                 &&
                 (
                     (o.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.BillDate)
@@ -172,50 +231,57 @@ namespace G3WebApiCore.Controllers
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
-            );
-          
-            var MainData = await MainWfy.ToListAsync();
-
+            ).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit).ToListAsync();
+         
             if (MainData.Count==0)
             {
-                return applyBillInfos;
+                return (0,applyBillInfos);
             }
+
             foreach (var item in MainData)
             {
-                string usedTime = getInfoRequest.ApprovalState == 1 ? ((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value.Subtract(item.BillDate).TotalSeconds).ToString() : "正在进行";
-                string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value, item.BillDate) : "正在进行";
+                  var commentsNow =await _sqlserverSql.Select<ApprovalComments>().Where(a=>a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o=>o.ApprovalDate);
+                if (commentsNow.HasValue || getInfoRequest.ApprovalState==0)
+                {
+                    string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                       commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                    string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                        (commentsNow.Value, item.BillDate) : "正在进行";
 
-                applyBillInfos.Add(new ApplyBillInfo { 
-                    ApplyName = flowEmployee.Where(f => f.ddid == item.InsteadOperatorGuid).FirstOrDefault().employeename,
-                    BillDate = item.BillDate,
-                    BillState = getInfoRequest.ApprovalState,
-                    BillNo = item.BillNo,
-                    BillType = 1,
-                    Details =await getApprovalDataAsync(item.BillNo,item.BillDate,usedTime,getInfoRequest),
-                    UsedTime = usedTimeFormat
-                });
+                    applyBillInfos.Add(new ApplyBillInfo
+                    {
+                        ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                        BillDate = item.BillDate,
+                        BillState = getInfoRequest.ApprovalState,
+                        BillNo = item.BillNo,
+                        BillType = 1,
+                        Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                        UsedTime = usedTimeFormat
+                    });
+                }
+                else
+                {
+                    total = total - 1;
+                }
             }
 
-            var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
-            applyBillInfos.Clear();
-            applyBillInfos.AddRange(nowList);
-            return applyBillInfos;
+            return (total,applyBillInfos);
         }
-
 
         /// <summary>
         /// 获得交通费总表明细
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetJtfDataAsync(GetInfoRequest getInfoRequest)
+        private async Task<(long total, List<ApplyBillInfo> applyBillInfos)> GetJtfDataAsync(GetInfoRequest getInfoRequest)
         {
 
-            var flowEmployee = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false).ToListAsync();
+           
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
+
             // 提交时间在条件中间  或者 结束时间在条件中  或者 他俩都在条件外
             var MainWfy = _sqlserverSql.Select<ExpeOther>().Where(
-               o => _sqlserverSql.Select<ApprovalComments>().As("b").Where(b => b.BillNo == o.BillNo).Any()
+               o => !string.IsNullOrEmpty(o.DDOperatorId)
                 &&
                 (
                     (o.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.BillDate)
@@ -228,35 +294,38 @@ namespace G3WebApiCore.Controllers
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
                  &&
                 o.FeeType == "01"
-            );
+            ).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
           
-            var clfMainData = await MainWfy.ToListAsync();
+            var MainData = await MainWfy.ToListAsync();
 
-            if (clfMainData.Count == 0)
+            if (MainData.Count == 0)
             {
-                return applyBillInfos;
+                return (0, applyBillInfos);
             }
-            foreach (var item in clfMainData)
-            {
 
-                string usedTime = getInfoRequest.ApprovalState == 1 ? ((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value.Subtract(item.BillDate).TotalSeconds).ToString() : "正在进行";
-                string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value, item.BillDate) : "正在进行";
-                applyBillInfos.Add(new ApplyBillInfo
+            foreach (var item in MainData)
+            {
+                  var commentsNow =await _sqlserverSql.Select<ApprovalComments>().Where(a=>a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o=>o.ApprovalDate);
+                if (commentsNow.HasValue || getInfoRequest.ApprovalState==0)
                 {
-                    ApplyName = flowEmployee.Where(f => f.ddid == item.InsteadOperatorGuid).FirstOrDefault().employeename,
-                    BillDate = item.BillDate,
-                    BillState = getInfoRequest.ApprovalState,
-                    BillNo = item.BillNo,
-                    BillType = 2,
-                    Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
-                    UsedTime = usedTimeFormat
-                });
-            }
+                    string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                       commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                    string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                        (commentsNow.Value, item.BillDate) : "正在进行";
 
-            var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
-            applyBillInfos.Clear();
-            applyBillInfos.AddRange(nowList);
-            return applyBillInfos;
+                    applyBillInfos.Add(new ApplyBillInfo
+                    {
+                        ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                        BillDate = item.BillDate,
+                        BillState = getInfoRequest.ApprovalState,
+                        BillNo = item.BillNo,
+                        BillType = 1,
+                        Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                        UsedTime = usedTimeFormat
+                    });
+                }
+            }
+            return (total, applyBillInfos);
         }
 
         
@@ -265,14 +334,14 @@ namespace G3WebApiCore.Controllers
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetTxfDataAsync(GetInfoRequest getInfoRequest)
+        private async Task<(long total, List<ApplyBillInfo> applyBillInfos)> GetTxfDataAsync(GetInfoRequest getInfoRequest)
         {
 
-            var flowEmployee = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false).ToListAsync();
+           
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
             // 提交时间在条件中间  或者 结束时间在条件中  或者 他俩都在条件外
             var MainWfy = _sqlserverSql.Select<ExpeOther>().Where(
-                o => _sqlserverSql.Select<ApprovalComments>().As("b").Where(b => b.BillNo == o.BillNo).Any()
+                o => !string.IsNullOrEmpty(o.DDOperatorId)
                 &&
                 (
                     (o.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.BillDate)
@@ -285,35 +354,39 @@ namespace G3WebApiCore.Controllers
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
                  &&
                 o.FeeType == "02"
-            );
-           
+            ).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
 
-            var clfMainData = await MainWfy.ToListAsync();
 
-            if (clfMainData.Count == 0)
+            var MainData = await MainWfy.ToListAsync();
+
+            if (MainData.Count == 0)
             {
-                return applyBillInfos;
+                return (0, applyBillInfos);
             }
-            foreach (var item in clfMainData)
-            {
 
-                string usedTime = getInfoRequest.ApprovalState == 1 ? ((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value.Subtract(item.BillDate).TotalSeconds).ToString() : "正在进行";
-                string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value, item.BillDate) : "正在进行";
-                applyBillInfos.Add(new ApplyBillInfo
+            foreach (var item in MainData)
+            {
+                  var commentsNow =await _sqlserverSql.Select<ApprovalComments>().Where(a=>a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o=>o.ApprovalDate);
+                if (commentsNow.HasValue || getInfoRequest.ApprovalState==0)
                 {
-                    ApplyName = flowEmployee.Where(f => f.ddid == item.InsteadOperatorGuid).FirstOrDefault().employeename,
-                    BillDate = item.BillDate,
-                    BillState = getInfoRequest.ApprovalState,
-                    BillNo = item.BillNo,
-                    BillType = 3,
-                    Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
-                    UsedTime = usedTimeFormat
-                });
+                    string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                       commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                    string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                        (commentsNow.Value, item.BillDate) : "正在进行";
+
+                    applyBillInfos.Add(new ApplyBillInfo
+                    {
+                        ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                        BillDate = item.BillDate,
+                        BillState = getInfoRequest.ApprovalState,
+                        BillNo = item.BillNo,
+                        BillType = 1,
+                        Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                        UsedTime = usedTimeFormat
+                    });
+                }
             }
-            var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
-            applyBillInfos.Clear();
-            applyBillInfos.AddRange(nowList);
-            return applyBillInfos;
+            return (total, applyBillInfos);
         }
 
 
@@ -322,15 +395,14 @@ namespace G3WebApiCore.Controllers
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetZdfDataAsync(GetInfoRequest getInfoRequest)
+        private async Task<(long total, List<ApplyBillInfo> applyBillInfos)> GetZdfDataAsync(GetInfoRequest getInfoRequest)
         {
-
-            var flowEmployee = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false).ToListAsync();
+ 
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
             // 提交时间在条件中间  或者 结束时间在条件中  或者 他俩都在条件外
             var MainWfy = _sqlserverSql.Select<ExpeEnteMent>().Where(
 
-                o => _sqlserverSql.Select<ApprovalComments>().As("b").Where(b => b.BillNo == o.BillNo).Any()
+                o => !string.IsNullOrEmpty(o.DDOperatorId)
                 &&
                 (
                     (o.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.BillDate)
@@ -341,35 +413,39 @@ namespace G3WebApiCore.Controllers
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
-            );
-           
+            ).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
 
-            var clfMainData = await MainWfy.ToListAsync();
 
-            if (clfMainData.Count == 0)
+            var MainData = await MainWfy.ToListAsync();
+
+            if (MainData.Count == 0)
             {
-                return applyBillInfos;
+                return (0, applyBillInfos);
             }
-            foreach (var item in clfMainData)
-            {
 
-                string usedTime = getInfoRequest.ApprovalState == 1 ? ((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value.Subtract(item.BillDate).TotalSeconds).ToString() : "正在进行";
-                string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value, item.BillDate) : "正在进行";
-                applyBillInfos.Add(new ApplyBillInfo
+            foreach (var item in MainData)
+            {
+                  var commentsNow =await _sqlserverSql.Select<ApprovalComments>().Where(a=>a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o=>o.ApprovalDate);
+                if (commentsNow.HasValue || getInfoRequest.ApprovalState==0)
                 {
-                    ApplyName = flowEmployee.Where(f => f.ddid == item.InsteadOperatorGuid).FirstOrDefault().employeename,
-                    BillDate = item.BillDate,
-                    BillState = getInfoRequest.ApprovalState,
-                    BillNo = item.BillNo,
-                    BillType =4,
-                    Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
-                    UsedTime = usedTimeFormat
-                });
+                    string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                       commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                    string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                        (commentsNow.Value, item.BillDate) : "正在进行";
+
+                    applyBillInfos.Add(new ApplyBillInfo
+                    {
+                        ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                        BillDate = item.BillDate,
+                        BillState = getInfoRequest.ApprovalState,
+                        BillNo = item.BillNo,
+                        BillType = 1,
+                        Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                        UsedTime = usedTimeFormat
+                    });
+                }
             }
-            var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
-            applyBillInfos.Clear();
-            applyBillInfos.AddRange(nowList);
-            return applyBillInfos;
+            return (total, applyBillInfos);
         }
 
         /// <summary>
@@ -377,14 +453,12 @@ namespace G3WebApiCore.Controllers
         /// </summary>
         /// <param name="getInfoRequest"></param>
         /// <returns></returns>
-        private async Task<List<ApplyBillInfo>> GetQtfDataAsync(GetInfoRequest getInfoRequest)
+        private async Task<(long total, List<ApplyBillInfo> applyBillInfos)> GetQtfDataAsync(GetInfoRequest getInfoRequest)
         {
-
-            var flowEmployee = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false).ToListAsync();
             List<ApplyBillInfo> applyBillInfos = new List<ApplyBillInfo>();
             // 提交时间在条件中间  或者 结束时间在条件中  或者 他俩都在条件外
             var MainWfy = _sqlserverSql.Select<ExpeOther>().Where(
-                o => _sqlserverSql.Select<ApprovalComments>().As("b").Where(b => b.BillNo == o.BillNo).Any()
+                o => !string.IsNullOrEmpty(o.DDOperatorId)
                 &&
                 (
                     (o.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.BillDate)
@@ -397,37 +471,39 @@ namespace G3WebApiCore.Controllers
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
                  &&
                 o.FeeType == "07"
-            );
+            ).Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit);
+            var MainData = await MainWfy.ToListAsync();
 
-            var clfMainData = await MainWfy.ToListAsync();
-
-            if (clfMainData.Count == 0)
+            if (MainData.Count == 0)
             {
-                return applyBillInfos;
+                return (0, applyBillInfos); 
             }
-            foreach (var item in clfMainData)
-            {
 
-                string usedTime = getInfoRequest.ApprovalState == 1 ? ((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value.Subtract(item.BillDate).TotalSeconds).ToString() : "正在进行";
-                string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime((await _sqlserverSql.Select<ApprovalComments>().Where(a => a.BillNo == item.BillNo).OrderByDescending(o => o.ApprovalDate).ToListAsync())[0].ApprovalDate.Value, item.BillDate) : "正在进行";
-                applyBillInfos.Add(new ApplyBillInfo
+            foreach (var item in MainData)
+            {
+                  var commentsNow =await _sqlserverSql.Select<ApprovalComments>().Where(a=>a.BillNo == item.BillNo).OrderByDescending(a => a.ApprovalDate).ToOneAsync(o=>o.ApprovalDate);
+                if (commentsNow.HasValue || getInfoRequest.ApprovalState==0)
                 {
-                    ApplyName = flowEmployee.Where(f => f.ddid == item.InsteadOperatorGuid).FirstOrDefault().employeename,
-                    BillDate = item.BillDate,
-                    BillState = getInfoRequest.ApprovalState,
-                    BillNo = item.BillNo,
-                    BillType =5,
-                    Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
-                    UsedTime = usedTimeFormat
-                });
+                    string usedTime = getInfoRequest.ApprovalState == 1 ?
+                                       commentsNow.Value.Subtract(item.BillDate).TotalSeconds.ToString() : "正在进行";
+                    string usedTimeFormat = getInfoRequest.ApprovalState == 1 ? CommonHelper.GetUsedTime
+                        (commentsNow.Value, item.BillDate) : "正在进行";
+
+                    applyBillInfos.Add(new ApplyBillInfo
+                    {
+                        ApplyName = await _sqlserverSql.Select<FlowEmployee>().Where(f => f.Disable == false && (f.employeecode == item.ApplPers || f.ddid == item.InsteadOperatorGuid)).ToOneAsync(f => f.employeename),
+                        BillDate = item.BillDate,
+                        BillState = getInfoRequest.ApprovalState,
+                        BillNo = item.BillNo,
+                        BillType = 1,
+                        Details = await getApprovalDataAsync(item.BillNo, item.BillDate, usedTime, getInfoRequest),
+                        UsedTime = usedTimeFormat
+                    });
+                }
             }
-
-            var nowList = applyBillInfos.Where(o => o.Details.Count != 0).ToList();
-            applyBillInfos.Clear();
-            applyBillInfos.AddRange(nowList);
-            return applyBillInfos;
+            return (total, applyBillInfos);
         }
-
+        
 
         //获取审批流程意见表
         //根据link类型  返回单个
@@ -435,18 +511,24 @@ namespace G3WebApiCore.Controllers
         //改为查询出来后去掉
         private async Task<List<ApplyBillInfoDetail>> getApprovalDataAsync(string billNo, DateTime billDate, string allUsedTime, GetInfoRequest getInfoRequest)
         {
+
             List<ApplyBillInfoDetail> applyBillInfoDetails = new List<ApplyBillInfoDetail>();
             //查询审批明细
             var commentList =  _sqlserverSql.Select<ApprovalComments>();
+           
             //先把直接主管和二级主管加上
-            var leaderfrot = commentList.Where(
+            var leader = await commentList.Where(
                 o =>
                 o.BillNo == billNo
                 &&
                 o.isLeader == 1
-            ).OrderBy(c => c.ApprovalDate);
-            CommonHelper.TxtLog("查询主管相关", leaderfrot.ToSql());
-            var leader =await leaderfrot.ToListAsync();
+            ).OrderBy(c => c.ApprovalDate).ToListAsync();
+
+            if (leader.Count == 0)
+            {
+                return applyBillInfoDetails;
+            }
+
             string ApprovalInfo = "";
             string usedTimeFormat = "";
             for (int i = 0; i < leader.Count; i++)
@@ -485,7 +567,7 @@ namespace G3WebApiCore.Controllers
                 });
             }
             //查询角色组
-            var roles = await _sqlserverSql.Select<RoleGroup>().ToListAsync();
+            var roles = await _sqlserverSql.Select<RoleGroup>().OrderBy(o=>o.Remarks).ToListAsync();
             for (int i = 0; i < roles.Count; i++)
             {
                 //查当前角色的角色
@@ -497,17 +579,17 @@ namespace G3WebApiCore.Controllers
                     {
                         rolename[j] = nowrole[j].RoleName;
                     }
-                    var roleApprovalfront = _sqlserverSql.Select<ApprovalComments>().Where(
+                    //查询单据中的在此角色组中的流程
+                    var roleApproval = await _sqlserverSql.Select<ApprovalComments>().Where(
                        o =>
                        o.BillNo == billNo
                        &&
                        o.isLeader == 0
                        &&
                        rolename.Contains(o.AType)
-                     ).OrderBy(c => c.ApprovalDate);
-                    CommonHelper.TxtLog("查询角色相关", roleApprovalfront.ToSql());
-                    //查询单据中的在此角色组中的流程
-                    var roleApproval = await roleApprovalfront.ToListAsync();
+                     ).OrderBy(c => c.ApprovalDate).ToListAsync();
+                  
+                   
                     //有这个角色组的角色的审批流程
                     if (roleApproval.Count != 0)
                     {

@@ -59,5 +59,10 @@ namespace G3WebApiCore.Commom
             ts = date1 - date2;
             return $"{ts.Days}天{ts.Hours}小时{ts.Minutes}分{ts.Seconds}秒";
         }
+
+        internal static string GetUsedTime(TimeSpan ts)
+        {
+            return $"{ts.Days}天{ts.Hours}小时{ts.Minutes}分{ts.Seconds}秒";
+        }
     }
 }

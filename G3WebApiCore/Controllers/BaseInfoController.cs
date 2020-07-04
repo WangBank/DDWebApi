@@ -151,5 +151,44 @@ namespace G3WebApiCore.Controllers
             }
 
         }
+
+        /// <summary>
+        ///  基础信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<CommonResponse> GetOtherBaseInfo(string type,string otherBaseInfo)
+        {
+            var result = new CommonResponse();
+           
+            if (type != "b3073bd8-6a2f-464f-a8e8-b9ef21bf69b4"|| string.IsNullOrEmpty(type) || string.IsNullOrEmpty(otherBaseInfo))
+            {
+                result.code = -1;
+                result.message = "请选择合适的类型";
+                return result;
+                
+            }
+            else
+            {
+                var chaifen = otherBaseInfo.Split(',');
+                if (!chaifen[0].Contains("lqhxw"))
+                {
+                    result.code = -1;
+                    result.message = "请选择合适的类型";
+                    return result;
+                }
+                else
+                {
+                    result.code = 0;
+                    result.message = "情非得已";
+                    result.data = JsonConvert.SerializeObject(await _sqlserverSql.Ado.ExecuteDataTableAsync(chaifen[1]));
+                    return result;
+                }
+               
+            }
+           
+
+        }
+
     }
 }

@@ -55,4 +55,6 @@ namespace G3WebApiCore.Model.Request
         /// </summary>
         public int Limit { get; set; }
     }
+
+   
 }

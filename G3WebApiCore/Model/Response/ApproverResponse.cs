@@ -72,5 +72,21 @@ namespace G3WebApiCore.Model.Response
         /// 日期段内平均花费时间
         /// </summary>
         public string AvgUsedTime { get; set; }
+
+        /// <summary>
+        /// 日期段内平均花费时间
+        /// </summary>
+        public TimeSpan AvgTimeSpanTime { get; set; }
+
+        /// <summary>
+        /// 消耗的时间
+        /// </summary>
+        public TimeSpan AllTimeSpanUsed { get; set; }
+
+
+        /// <summary>
+        /// 参与审批单据的数量
+        /// </summary>
+        public double BillCount { get; set; }
     }
 }

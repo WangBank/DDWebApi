@@ -61,7 +61,13 @@ namespace G3WebApiCore.Controllers
             {
                 CommonHelper.TxtLog("统计审批人入参", JsonConvert.SerializeObject(approverRequest));
                 var mainData = new List<Approver>();
-
+                if (approverRequest.Page == 0 || approverRequest.Limit == 0)
+                {
+                    approverRequest.Page = 1;
+                    approverRequest.Limit = 10;
+                }
+                var amountpage = approverRequest.Page;
+                var amountlimit = approverRequest.Limit;
                 //判断选择的单据类型
                 switch (approverRequest.LinkDetailName)
                 {
@@ -69,24 +75,27 @@ namespace G3WebApiCore.Controllers
                         //全部单据
                         mainData = await GetAllApproverAsync(approverRequest);
                         break;
+
                     default:
                         //根据流程名获取人
                         mainData = await GetApproverByNameAsync(approverRequest);
                         break;
                 }
+                //超出时间限制
+                if (approverRequest.OverDayCount!=0)
+                {
+                    mainData = mainData.Where(o => o.AvgTimeSpanTime.TotalSeconds >= approverRequest.OverDayCount * 24 * 60 * 60).ToList();
+                }
+
                 var totals = mainData.Count();
-                var maindatafy = mainData.Skip((approverRequest.Page - 1) * approverRequest.Limit).Take(approverRequest.Limit).ToList();
+                mainData = mainData.Skip((amountpage - 1) * amountlimit).Take(amountlimit).ToList();
                 result.code = 0;
                 result.message = "获取数据成功";
                 result.data = new ApproverData
                 {
                     Total = totals,
-                    Items = maindatafy
+                    Items = mainData
                 };
-                _ = Task.Run(() =>
-                {
-                    CommonHelper.TxtLog("统计审批人出参", JsonConvert.SerializeObject(result));
-                });
                 return result;
 
             }
@@ -128,15 +137,16 @@ namespace G3WebApiCore.Controllers
             }
             try
             {
-                CommonHelper.TxtLog("统计审批人单据入参", JsonConvert.SerializeObject(approver_BillInfoRequest));
+               CommonHelper.TxtLog("统计审批人单据入参", JsonConvert.SerializeObject(approver_BillInfoRequest));
+                TimeSpan allTimeSpanUsed = new TimeSpan();
+                string allUsedTime = string.Empty;
                 var mainData = new List<Approver_BillInfo>();
-                var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent, BillClass>()
-                 .LeftJoin((a, b, c, d, e) => a.BillNo == b.BillNo)
-                 .LeftJoin((a, b, c, d, e) => a.BillNo == c.BillNo)
-                 .LeftJoin((a, b, c, d, e) => a.BillNo == d.BillNo)
-                  .LeftJoin((a, b, c, d, e) => e.BillClassid == e.BillClassid)
+                var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent>()
+                 .LeftJoin((a, b, c, d) => a.BillNo == b.BillNo)
+                 .LeftJoin((a, b, c, d) => a.BillNo == c.BillNo)
+                 .LeftJoin((a, b, c, d) => a.BillNo == d.BillNo)
                  .Where(
-                   (a, b, c, d, e) =>
+                   (a, b, c, d) =>
                      a.ApprovalID == approver_BillInfoRequest.JobNumber
                      &&
                     (
@@ -160,31 +170,113 @@ namespace G3WebApiCore.Controllers
                     ||
                     (d.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= d.AuditingDate))
                     )
-                 );
-                //var fydata = approvalCommentsmain.Skip((approver_BillInfoRequest.Page - 1) * approver_BillInfoRequest.Limit).Take(approver_BillInfoRequest.Limit);
+                 ).OrderBy((a,b,c,d) => a.ApprovalDate);
+               
                 var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
                 foreach (var item in approvalCommentsdata)
                 {
-                    mainData.Add(new Approver_BillInfo { 
-                        ApproverType = item.AType,
-                        BillType = (await _sqlserverSql.Select<BillClass>().Where(o=>o.BillClassid==item.BillClassid).FirstAsync()).BillName,
-                        BillNo = item.BillNo,
-                        UsedTime = "暂未写完逻辑"
-                    });
+                    string UsedTime = string.Empty;
+                    TimeSpan timespanUsedTime=new TimeSpan();
+                    //查询当前单号的花费时间 
+                    //如果是正在进行的，用当前时间减去
+                    if (item.ApprovalStatus ==0)
+                    {
+                       timespanUsedTime = DateTime.Now - item.ApprovalDate.Value;
+                        UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+                        mainData.Add(new Approver_BillInfo
+                        {
+                            ApproverType = item.AType,
+                            BillType = (await _sqlserverSql.Select<BillClass>().Where(o => o.BillClassid == item.BillClassid).FirstAsync()).BillName.Trim(),
+                            BillNo = item.BillNo,
+                            UsedTime = UsedTime,
+                            TimeSpanUsed = timespanUsedTime,
+                            ApprovalState = 0
+                        });
+                        
+                    }
+                    else //已审批
+                    {
+                        //之前是否计算了这个单据的时间
+                        var isExistBillNo = mainData.Where(o => o.BillNo == item.BillNo);
+                        if (!isExistBillNo.Any())
+                        {
+                            //求出这个单据流程的上一级审批时间
+                            var nowBillNoInfo =await _sqlserverSql.Select<ApprovalComments>().Where(c => c.BillNo == item.BillNo).OrderBy(c => c.ApprovalDate).ToListAsync();
+
+                            //zhege wanyi shifou zai diyige shenpiguo
+                            if (nowBillNoInfo[0].ApprovalID== item.ApprovalID)
+                            {
+                                DateTime beginTime = new DateTime();
+                                //求开始时间
+                                if (item.BillNo.ToLower().StartsWith("cl"))
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeTrav>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                else if (item.BillNo.ToLower().StartsWith("zdf"))
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeEnteMent>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                else
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeOther>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                timespanUsedTime = item.ApprovalDate.Value - beginTime;
+                                UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+
+                            }
+                            else //不是第一个流程
+                            {
+                                //求出上一个流程的审批时间
+                                var tempComment = nowBillNoInfo.Where(o => o.CommentsId == item.CommentsId).First();
+                                int sygLc = nowBillNoInfo.IndexOf(tempComment);
+                                timespanUsedTime = tempComment.ApprovalDate.Value- nowBillNoInfo[sygLc-1].ApprovalDate.Value;
+                                UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+                            }
+
+                            // I am Very irritable, do not want to get a result that this bill 是否是这个人发起又审批的了
+                            // if you see this,good luck to you
+                            if (timespanUsedTime.TotalSeconds >2.5)
+                            {
+                                mainData.Add(new Approver_BillInfo
+                                {
+                                    ApproverType = item.AType,
+                                    BillType = (await _sqlserverSql.Select<BillClass>().Where(o => o.BillClassid == item.BillClassid).FirstAsync()).BillName.Trim(),
+                                    BillNo = item.BillNo,
+                                    UsedTime = UsedTime,
+                                    TimeSpanUsed = timespanUsedTime,
+                                    ApprovalState = 1
+                                });
+                            }
+                           
+                        }
+                        else//那就是一个单据多个审批角色，时间忽略不计，角色上当前的
+                        {
+                            var existIndex = mainData.IndexOf(isExistBillNo.FirstOrDefault());
+                            mainData[existIndex].ApproverType = $"{mainData[existIndex].ApproverType},{item.AType}";
+                        }
+
+                    }
+
+                    if (timespanUsedTime.TotalSeconds > 2.5)
+                    {
+                        allTimeSpanUsed = allTimeSpanUsed + timespanUsedTime;
+                        allUsedTime = CommonHelper.GetUsedTime(allTimeSpanUsed);
+                    }
+                    
                 }
+
                 var totals = mainData.Count();
-                var maindatafy = mainData.Skip((approver_BillInfoRequest.Page - 1) * approver_BillInfoRequest.Limit).Take(approver_BillInfoRequest.Limit).ToList();
+                var maindatafy = approver_BillInfoRequest.Limit==0 || approver_BillInfoRequest.Page ==0? mainData : mainData.Skip((approver_BillInfoRequest.Page - 1) * approver_BillInfoRequest.Limit).Take(approver_BillInfoRequest.Limit).ToList();
                 result.code = 0;
                 result.message = "获取数据成功";
                 result.data = new Approver_BillInfoData
                 {
                     Total = totals,
-                    Items = maindatafy
+                    Items = maindatafy,
+                    AllTimeSpanUsed = allTimeSpanUsed,
+                    AllTimeUsed = allUsedTime
                 };
-                _ = Task.Run(() =>
-                {
-                    CommonHelper.TxtLog("统计审批人单据出参", JsonConvert.SerializeObject(result));
-                });
+               
                 return result;
             }
             catch (Exception ex)
@@ -234,18 +326,41 @@ namespace G3WebApiCore.Controllers
                     )
                  );
             var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
-            foreach (var item in approvalCommentsdata)
-            {
-                mainData.Add(new Approver
-                {
-                    AllUsedTime = "20天15小时30分钟20秒",
-                    ApproverName = item.ApprovalName,
-                    AvgUsedTime = "0天10小时30分钟20秒",
-                    JobNumber = item.ApprovalID,
-                    DeptInfo = "测试数据部门"
-                });
-            }
 
+            //循环这些审批意见，添加到list中，如果有重复的 增加usedtime 得出总的消耗时间
+            for (int i = 0; i < approvalCommentsdata.Count; i++)
+            {
+                var DeptCode = await _sqlserverSql.Select<FlowEmployee>().Where(f =>
+                    f.employeecode == approvalCommentsdata[i].ApprovalID
+                 ).ToListAsync(a => a.orgcode);
+                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Code)).ToListAsync(a => a.Name)));
+
+                var isExistJobNumber = mainData.Where(o => o.JobNumber == approvalCommentsdata[i].ApprovalID);
+                if (!isExistJobNumber.Any())
+                {
+                    //求出这个人的总单据
+                    var billinfo = await GetBillInfo(new Approver_BillInfoRequest
+                    {
+                        BeginDate = approverRequest.BeginDate,
+                        EndDate = approverRequest.EndDate,
+                        JobNumber = approvalCommentsdata[i].ApprovalID,
+                        Limit = 0,
+                        Page = 0
+                    });
+
+                    mainData.Add(new Approver
+                    {
+                        AllUsedTime = billinfo.data.AllTimeUsed,
+                        ApproverName = approvalCommentsdata[i].ApprovalName,
+                        AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
+                        AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
+                        JobNumber = approvalCommentsdata[i].ApprovalID,
+                        DeptInfo = deptcodeinfo,
+                        AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
+                        BillCount = billinfo.data.Total
+                    });
+                }
+            }
 
             return mainData;
         }
@@ -280,17 +395,45 @@ namespace G3WebApiCore.Controllers
                     (d.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= d.AuditingDate))
                  );
             var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
-            foreach (var item in approvalCommentsdata)
+
+            //循环这些审批意见，添加到list中，如果有重复的 增加usedtime 得出总的消耗时间
+            for (int i = 0; i < approvalCommentsdata.Count; i++)
             {
-                mainData.Add(new Approver {
-                    AllUsedTime ="20天15小时30分钟20秒",
-                    ApproverName = item.ApprovalName,
-                    AvgUsedTime = "0天10小时30分钟20秒",
-                    JobNumber = item.ApprovalID,
-                    DeptInfo ="测试数据部门"
-                });
+               var DeptCode = await _sqlserverSql.Select<FlowEmployee>().Where(f=>
+                   f.employeecode == approvalCommentsdata[i].ApprovalID
+                ).ToListAsync(a =>  a.orgcode);
+                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Code)).ToListAsync(a => a.Name)));
+
+                var isExistJobNumber = mainData.Where(o => o.JobNumber == approvalCommentsdata[i].ApprovalID);
+                if (!isExistJobNumber.Any())
+                {
+                    //求出这个人的总单据
+                    var billinfo = await GetBillInfo(new Approver_BillInfoRequest
+                    {
+                        BeginDate = approverRequest.BeginDate,
+                        EndDate = approverRequest.EndDate,
+                        JobNumber = approvalCommentsdata[i].ApprovalID,
+                        Limit = 0,
+                        Page = 0
+                    });
+
+                    mainData.Add(new Approver
+                    {
+                        AllUsedTime = billinfo.data.AllTimeUsed,
+                        ApproverName = approvalCommentsdata[i].ApprovalName,
+                        AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
+                        AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
+                        JobNumber = approvalCommentsdata[i].ApprovalID,
+                        DeptInfo = deptcodeinfo,
+                        AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
+                        BillCount = billinfo.data.Total
+                    });
+                }
             }
+
             return mainData;
         }
+
+        
     }
 }

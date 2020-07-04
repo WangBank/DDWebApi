@@ -41,6 +41,17 @@ namespace G3WebApiCore.Model.Response
         /// 审批人总条数,经过条件筛选后的总条数，用于分页
         /// </summary>
         public long Total { get; set; }
+
+        /// <summary>
+        /// 消耗的时间
+        /// </summary>
+        public TimeSpan AllTimeSpanUsed { get; set; }
+
+
+        /// <summary>
+        /// 消耗的时间 sting 类型
+        /// </summary>
+        public string AllTimeUsed { get; set; }
     }
 
     /// <summary>
@@ -67,6 +78,16 @@ namespace G3WebApiCore.Model.Response
         /// 审批此单据消耗时间
         /// </summary>
         public string UsedTime { get; set; }
+
+        /// <summary>
+        /// 审批此单据消耗时间
+        /// </summary>
+        public TimeSpan TimeSpanUsed { get; set; }
+
+        /// <summary>
+        /// 是否已经审批完成 0：还未审批  1:已审批
+        /// </summary>
+        public int ApprovalState { get; set; }
 
     }
 }
