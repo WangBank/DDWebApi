@@ -123,6 +123,11 @@ namespace G3WebApiCore.Controllers
         [HttpPost]
         public async Task<Approver_BillInfoResponse> GetBillInfo(Approver_BillInfoRequest approver_BillInfoRequest)
         {
+            if (approver_BillInfoRequest.Limit == 0 || approver_BillInfoRequest.Page == 0)
+            {
+                approver_BillInfoRequest.Limit = 10; 
+                approver_BillInfoRequest.Page = 1;
+            }
             var result = new Approver_BillInfoResponse();
             if (approver_BillInfoRequest == null)
             {
@@ -135,44 +140,97 @@ namespace G3WebApiCore.Controllers
                 return result;
 
             }
+            approver_BillInfoRequest.BeginDate = approver_BillInfoRequest.BeginDate >= DateTime.Parse("2019-11-15") ? approver_BillInfoRequest.BeginDate : DateTime.Parse("2019-11-16");
             try
             {
                CommonHelper.TxtLog("统计审批人单据入参", JsonConvert.SerializeObject(approver_BillInfoRequest));
                 TimeSpan allTimeSpanUsed = new TimeSpan();
                 string allUsedTime = string.Empty;
                 var mainData = new List<Approver_BillInfo>();
-                var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent>()
-                 .LeftJoin((a, b, c, d) => a.BillNo == b.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == c.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == d.BillNo)
-                 .Where(
-                   (a, b, c, d) =>
-                     a.ApprovalID == approver_BillInfoRequest.JobNumber
+                //var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent>()
+                //  .InnerJoin((a, b, c, d) => a.BillNo == b.BillNo)
+                //  .InnerJoin((a, b, c, d) => a.BillNo == c.BillNo)
+                //  .InnerJoin((a, b, c, d) => a.BillNo == d.BillNo)
+                //  .Where(
+                //    (a, b, c, d) =>
+                //      a.ApprovalID == approver_BillInfoRequest.JobNumber
+                //      &&
+                //     (
+                //     ((b.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.BillDate)
+                //     ||
+                //     (b.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.AuditingDate)
+                //     ||
+                //     (b.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= b.AuditingDate))
+                //     ||
+
+                //     ((c.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.BillDate)
+                //     ||
+                //     (c.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.AuditingDate)
+                //     ||
+                //     (c.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= c.AuditingDate))
+                //     ||
+
+                //     ((d.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.BillDate)
+                //     ||
+                //     (d.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.AuditingDate)
+                //     ||
+                //     (d.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= d.AuditingDate))
+                //     )
+                //  );
+
+
+
+
+
+                var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments>()
+                    .Where(a => a.ApprovalID == approver_BillInfoRequest.JobNumber)
+                  .Where(a =>
+                    _sqlserverSql.Select<ExpeOther>().As("b").Where(
+                        b => b.BillNo == a.BillNo
+                        &&
+                        ((b.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.BillDate)
+                        ||
+                        (b.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.AuditingDate)
+                        ||
+                        (b.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= b.AuditingDate))
+                        &&
+                        b.BillDate> DateTime.Parse("2019-11-15")
+                    ).Any()
+                    ||
+                     _sqlserverSql.Select<ExpeTrav>().As("c").Where(
+                       c => a.BillNo == c.BillNo
+                        &&
+                       ((c.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.BillDate)
+                         ||
+                         (c.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.AuditingDate)
+                         ||
+                         (c.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= c.AuditingDate))
+                         &&
+                        c.BillDate > DateTime.Parse("2019-11-15")
+                    ).Any()
+                     ||
+                     _sqlserverSql.Select<ExpeEnteMent>().As("d").Where(
+                       d => a.BillNo == d.BillNo
+                        &&
+                       ((d.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.BillDate)
+                     ||
+                     (d.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.AuditingDate)
+                     ||
+                     (d.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= d.AuditingDate))
                      &&
-                    (
-                    ((b.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.BillDate)
-                    ||
-                    (b.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.AuditingDate)
-                    ||
-                    (b.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= b.AuditingDate))
-                    ||
+                       d.BillDate > DateTime.Parse("2019-11-15")
+                    ).Any());
 
-                    ((c.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.BillDate)
-                    ||
-                    (c.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.AuditingDate)
-                    ||
-                    (c.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= c.AuditingDate))
-                    ||
+                //var sqlss = approvalCommentsmain.ToSql();
 
-                    ((d.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.BillDate)
-                    ||
-                    (d.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.AuditingDate)
-                    ||
-                    (d.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= d.AuditingDate))
-                    )
-                 ).OrderBy((a,b,c,d) => a.ApprovalDate);
                
                 var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
+                if (approvalCommentsdata.Count==0)
+                {
+                    result.code = -1;
+                    result.message = "请检查入参";
+                    return result;
+                }
                 foreach (var item in approvalCommentsdata)
                 {
                     string UsedTime = string.Empty;
@@ -235,7 +293,7 @@ namespace G3WebApiCore.Controllers
 
                             // I am Very irritable, do not want to get a result that this bill 是否是这个人发起又审批的了
                             // if you see this,good luck to you
-                            if (timespanUsedTime.TotalSeconds >2.5)
+                            if (timespanUsedTime.TotalSeconds >2)
                             {
                                 mainData.Add(new Approver_BillInfo
                                 {
@@ -257,21 +315,25 @@ namespace G3WebApiCore.Controllers
 
                     }
 
-                    if (timespanUsedTime.TotalSeconds > 2.5)
+                    if (timespanUsedTime.TotalSeconds > 2)
                     {
                         allTimeSpanUsed = allTimeSpanUsed + timespanUsedTime;
                         allUsedTime = CommonHelper.GetUsedTime(allTimeSpanUsed);
                     }
                     
                 }
-
-                var totals = mainData.Count();
-                var maindatafy = approver_BillInfoRequest.Limit==0 || approver_BillInfoRequest.Page ==0? mainData : mainData.Skip((approver_BillInfoRequest.Page - 1) * approver_BillInfoRequest.Limit).Take(approver_BillInfoRequest.Limit).ToList();
+                if (mainData.Count==0)
+                {
+                    result.code = -1;
+                    result.message = "获取数据失败";
+                    return result;
+                }
+                var maindatafy = mainData.Skip((approver_BillInfoRequest.Page - 1) * approver_BillInfoRequest.Limit).Take(approver_BillInfoRequest.Limit).ToList();
                 result.code = 0;
                 result.message = "获取数据成功";
                 result.data = new Approver_BillInfoData
                 {
-                    Total = totals,
+                    Total = mainData.Count,
                     Items = maindatafy,
                     AllTimeSpanUsed = allTimeSpanUsed,
                     AllTimeUsed = allUsedTime
@@ -292,40 +354,187 @@ namespace G3WebApiCore.Controllers
             }
         }
 
+
+        private async Task<Approver_BillInfoResponse> GetBillInfoMain(Approver_BillInfoRequest approver_BillInfoRequest)
+        {
+            var result = new Approver_BillInfoResponse();
+            approver_BillInfoRequest.BeginDate = approver_BillInfoRequest.BeginDate >= DateTime.Parse("2019-11-15") ? approver_BillInfoRequest.BeginDate : DateTime.Parse("2019-11-16");
+            try
+            {
+                TimeSpan allTimeSpanUsed = new TimeSpan();
+                string allUsedTime = string.Empty;
+                var mainData = new List<Approver_BillInfo>();
+
+                var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments>()
+                    .Where(a => a.ApprovalID == approver_BillInfoRequest.JobNumber)
+                  .Where(a =>
+                    _sqlserverSql.Select<ExpeOther>().As("b").Where(
+                        b => b.BillNo == a.BillNo
+                        &&
+                        ((b.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.BillDate)
+                        ||
+                        (b.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= b.AuditingDate)
+                        ||
+                        (b.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= b.AuditingDate))
+                        &&
+                        b.BillDate > DateTime.Parse("2019-11-15")
+                    ).Any()
+                    ||
+                     _sqlserverSql.Select<ExpeTrav>().As("c").Where(
+                       c => a.BillNo == c.BillNo
+                        &&
+                       ((c.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.BillDate)
+                         ||
+                         (c.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= c.AuditingDate)
+                         ||
+                         (c.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= c.AuditingDate))
+                         &&
+                        c.BillDate > DateTime.Parse("2019-11-15")
+                    ).Any()
+                     ||
+                     _sqlserverSql.Select<ExpeEnteMent>().As("d").Where(
+                       d => a.BillNo == d.BillNo
+                        &&
+                       ((d.BillDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.BillDate)
+                     ||
+                     (d.AuditingDate <= approver_BillInfoRequest.EndDate && approver_BillInfoRequest.BeginDate <= d.AuditingDate)
+                     ||
+                     (d.AuditingDate <= approver_BillInfoRequest.BeginDate && approver_BillInfoRequest.EndDate <= d.AuditingDate))
+                     &&
+                       d.BillDate > DateTime.Parse("2019-11-15")
+                    ).Any());
+                var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
+                if (approvalCommentsdata.Count == 0)
+                {
+                    result.code = -1;
+                    result.message = "请检查入参";
+                    return result;
+                }
+                foreach (var item in approvalCommentsdata)
+                {
+                    string UsedTime = string.Empty;
+                    TimeSpan timespanUsedTime = new TimeSpan();
+                    //查询当前单号的花费时间 
+                    //如果是正在进行的，用当前时间减去
+                    if (item.ApprovalStatus == 0)
+                    {
+                        timespanUsedTime = DateTime.Now - item.ApprovalDate.Value;
+                        UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+                        mainData.Add(new Approver_BillInfo
+                        {
+                            ApproverType = item.AType,
+                            BillType = (await _sqlserverSql.Select<BillClass>().Where(o => o.BillClassid == item.BillClassid).FirstAsync()).BillName.Trim(),
+                            BillNo = item.BillNo,
+                            UsedTime = UsedTime,
+                            TimeSpanUsed = timespanUsedTime,
+                            ApprovalState = 0
+                        });
+
+                    }
+                    else //已审批
+                    {
+                        //之前是否计算了这个单据的时间
+                        var isExistBillNo = mainData.Where(o => o.BillNo == item.BillNo);
+                        if (!isExistBillNo.Any())
+                        {
+                            //求出这个单据流程的上一级审批时间
+                            var nowBillNoInfo = await _sqlserverSql.Select<ApprovalComments>().Where(c => c.BillNo == item.BillNo).OrderBy(c => c.ApprovalDate).ToListAsync();
+
+                            //zhege wanyi shifou zai diyige shenpiguo
+                            if (nowBillNoInfo[0].ApprovalID == item.ApprovalID)
+                            {
+                                DateTime beginTime = new DateTime();
+                                //求开始时间
+                                if (item.BillNo.ToLower().StartsWith("cl"))
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeTrav>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                else if (item.BillNo.ToLower().StartsWith("zdf"))
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeEnteMent>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                else
+                                {
+                                    beginTime = await _sqlserverSql.Select<ExpeOther>().Where(o => o.BillNo == item.BillNo).FirstAsync(o => o.BillDate);
+                                }
+                                timespanUsedTime = item.ApprovalDate.Value - beginTime;
+                                UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+
+                            }
+                            else //不是第一个流程
+                            {
+                                //求出上一个流程的审批时间
+                                var tempComment = nowBillNoInfo.Where(o => o.CommentsId == item.CommentsId).First();
+                                int sygLc = nowBillNoInfo.IndexOf(tempComment);
+                                timespanUsedTime = tempComment.ApprovalDate.Value - nowBillNoInfo[sygLc - 1].ApprovalDate.Value;
+                                UsedTime = CommonHelper.GetUsedTime(timespanUsedTime);
+                            }
+
+                            // I am Very irritable, do not want to get a result that this bill 是否是这个人发起又审批的了
+                            // if you see this,good luck to you
+                            if (timespanUsedTime.TotalSeconds > 2)
+                            {
+                                mainData.Add(new Approver_BillInfo
+                                {
+                                    ApproverType = item.AType,
+                                    BillType = (await _sqlserverSql.Select<BillClass>().Where(o => o.BillClassid == item.BillClassid).FirstAsync()).BillName.Trim(),
+                                    BillNo = item.BillNo,
+                                    UsedTime = UsedTime,
+                                    TimeSpanUsed = timespanUsedTime,
+                                    ApprovalState = 1
+                                });
+                            }
+
+                        }
+                        else//那就是一个单据多个审批角色，时间忽略不计，角色上当前的
+                        {
+                            var existIndex = mainData.IndexOf(isExistBillNo.FirstOrDefault());
+                            mainData[existIndex].ApproverType = $"{mainData[existIndex].ApproverType},{item.AType}";
+                        }
+
+                    }
+
+                    if (timespanUsedTime.TotalSeconds > 2)
+                    {
+                        allTimeSpanUsed = allTimeSpanUsed + timespanUsedTime;
+                        allUsedTime = CommonHelper.GetUsedTime(allTimeSpanUsed);
+                    }
+
+                }
+                if (mainData.Count == 0)
+                {
+                    result.code = -1;
+                    result.message = "获取数据失败";
+                    return result;
+                }
+                result.code = 0;
+                result.message = "获取数据成功";
+                result.data = new Approver_BillInfoData
+                {
+                    Total = mainData.Count,
+                    Items = mainData,
+                    AllTimeSpanUsed = allTimeSpanUsed,
+                    AllTimeUsed = allUsedTime
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.code = -1;
+                result.message = "获取数据失败" + ex.Message;
+                return result;
+            }
+        }
+
+
         private async Task<List<Approver>> GetApproverByNameAsync(ApproverRequest approverRequest)
         {
             var mainData = new List<Approver>();
-            var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent>()
-                 .LeftJoin((a, b, c, d) => a.BillNo == b.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == c.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == d.BillNo)
-                 .Where(
-                   (a, b, c, d) =>
-                     a.AType==approverRequest.LinkDetailName   
-                     &&
-                    (
-                    ((b.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= b.BillDate)
-                    ||
-                    (b.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= b.AuditingDate)
-                    ||
-                    (b.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= b.AuditingDate))
-                    ||
-
-                    ((c.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= c.BillDate)
-                    ||
-                    (c.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= c.AuditingDate)
-                    ||
-                    (c.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= c.AuditingDate))
-                    ||
-
-                    ((d.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= d.BillDate)
-                    ||
-                    (d.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= d.AuditingDate)
-                    ||
-                    (d.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= d.AuditingDate))
-                    )
-                 );
-            var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
+            var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments>().Distinct().Where(a =>
+                    a.AType == approverRequest.LinkDetailName).Page(approverRequest.Page, approverRequest.Limit)
+          ;
+            var approvalCommentsdata = await approvalCommentsmain.ToListAsync(a => new { a.ApprovalID, a.ApprovalName });
 
             //循环这些审批意见，添加到list中，如果有重复的 增加usedtime 得出总的消耗时间
             for (int i = 0; i < approvalCommentsdata.Count; i++)
@@ -333,13 +542,13 @@ namespace G3WebApiCore.Controllers
                 var DeptCode = await _sqlserverSql.Select<FlowEmployee>().Where(f =>
                     f.employeecode == approvalCommentsdata[i].ApprovalID
                  ).ToListAsync(a => a.orgcode);
-                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Code)).ToListAsync(a => a.Name)));
+                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Guid)).ToListAsync(a => a.Name)));
 
                 var isExistJobNumber = mainData.Where(o => o.JobNumber == approvalCommentsdata[i].ApprovalID);
                 if (!isExistJobNumber.Any())
                 {
                     //求出这个人的总单据
-                    var billinfo = await GetBillInfo(new Approver_BillInfoRequest
+                    var billinfo = await GetBillInfoMain(new Approver_BillInfoRequest
                     {
                         BeginDate = approverRequest.BeginDate,
                         EndDate = approverRequest.EndDate,
@@ -348,17 +557,20 @@ namespace G3WebApiCore.Controllers
                         Page = 0
                     });
 
-                    mainData.Add(new Approver
+                    if (billinfo.data != null)
                     {
-                        AllUsedTime = billinfo.data.AllTimeUsed,
-                        ApproverName = approvalCommentsdata[i].ApprovalName,
-                        AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
-                        AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
-                        JobNumber = approvalCommentsdata[i].ApprovalID,
-                        DeptInfo = deptcodeinfo,
-                        AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
-                        BillCount = billinfo.data.Total
-                    });
+                        mainData.Add(new Approver
+                        {
+                            AllUsedTime = billinfo.data.AllTimeUsed,
+                            ApproverName = approvalCommentsdata[i].ApprovalName,
+                            AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
+                            AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
+                            JobNumber = approvalCommentsdata[i].ApprovalID,
+                            DeptInfo = deptcodeinfo,
+                            AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
+                            BillCount = billinfo.data.Total
+                        });
+                    }
                 }
             }
 
@@ -369,46 +581,23 @@ namespace G3WebApiCore.Controllers
         {
             var mainData = new List<Approver>();
 
-            var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments, ExpeTrav, ExpeOther, ExpeEnteMent>()
-                 .LeftJoin((a, b, c, d) => a.BillNo == b.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == c.BillNo)
-                 .LeftJoin((a, b, c, d) => a.BillNo == d.BillNo)
-                 .Where((a, b, c, d) =>
-                    ((b.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= b.BillDate)
-                    ||
-                    (b.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= b.AuditingDate)
-                    ||
-                    (b.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= b.AuditingDate))
-                    ||
-
-                    ((c.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= c.BillDate)
-                    ||
-                    (c.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= c.AuditingDate)
-                    ||
-                    (c.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= c.AuditingDate))
-                    ||
-
-                    ((d.BillDate <= approverRequest.EndDate && approverRequest.BeginDate <= d.BillDate)
-                    ||
-                    (d.AuditingDate <= approverRequest.EndDate && approverRequest.BeginDate <= d.AuditingDate)
-                    ||
-                    (d.AuditingDate <= approverRequest.BeginDate && approverRequest.EndDate <= d.AuditingDate))
-                 );
-            var approvalCommentsdata = await approvalCommentsmain.ToListAsync();
-
+            var approvalCommentsmain = _sqlserverSql.Select<ApprovalComments>().Distinct();
+            var approvalCommentsdata = await approvalCommentsmain.ToListAsync(a=> new { a.ApprovalID,a.ApprovalName });
+            
+            
             //循环这些审批意见，添加到list中，如果有重复的 增加usedtime 得出总的消耗时间
             for (int i = 0; i < approvalCommentsdata.Count; i++)
             {
                var DeptCode = await _sqlserverSql.Select<FlowEmployee>().Where(f=>
                    f.employeecode == approvalCommentsdata[i].ApprovalID
                 ).ToListAsync(a =>  a.orgcode);
-                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Code)).ToListAsync(a => a.Name)));
+                var deptcodeinfo = string.Join(",", (await _sqlserverSql.Select<Organization>().Where(o => DeptCode.Contains(o.Guid)).ToListAsync(a => a.Name)));
 
                 var isExistJobNumber = mainData.Where(o => o.JobNumber == approvalCommentsdata[i].ApprovalID);
                 if (!isExistJobNumber.Any())
                 {
                     //求出这个人的总单据
-                    var billinfo = await GetBillInfo(new Approver_BillInfoRequest
+                    var billinfo = await GetBillInfoMain(new Approver_BillInfoRequest
                     {
                         BeginDate = approverRequest.BeginDate,
                         EndDate = approverRequest.EndDate,
@@ -416,18 +605,21 @@ namespace G3WebApiCore.Controllers
                         Limit = 0,
                         Page = 0
                     });
-
-                    mainData.Add(new Approver
+                    if (billinfo.data != null)
                     {
-                        AllUsedTime = billinfo.data.AllTimeUsed,
-                        ApproverName = approvalCommentsdata[i].ApprovalName,
-                        AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
-                        AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
-                        JobNumber = approvalCommentsdata[i].ApprovalID,
-                        DeptInfo = deptcodeinfo,
-                        AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
-                        BillCount = billinfo.data.Total
-                    });
+                        mainData.Add(new Approver
+                        {
+                            AllUsedTime = billinfo.data.AllTimeUsed,
+                            ApproverName = approvalCommentsdata[i].ApprovalName,
+                            AvgTimeSpanTime = billinfo.data.AllTimeSpanUsed / billinfo.data.Total,
+                            AvgUsedTime = CommonHelper.GetUsedTime(billinfo.data.AllTimeSpanUsed / billinfo.data.Total),
+                            JobNumber = approvalCommentsdata[i].ApprovalID,
+                            DeptInfo = deptcodeinfo,
+                            AllTimeSpanUsed = billinfo.data.AllTimeSpanUsed,
+                            BillCount = billinfo.data.Total
+                        });
+                    }
+                   
                 }
             }
 
