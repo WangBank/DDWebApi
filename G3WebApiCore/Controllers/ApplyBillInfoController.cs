@@ -148,19 +148,19 @@ namespace G3WebApiCore.Controllers
 
             var MainDatamain = _sqlserverSql
                 .Select<FYModel>()
-               .WithSql("select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeTrav union select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeEnteMent union select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeOther")
+               .WithSql("select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeTrav where billdate > '2019-11-22' union select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeEnteMent where billdate > '2019-11-22' union select BillNo,BillDate,ApplPers,InsteadOperatorGuid,DDOperatorId,AuditingDate,IsAuditing from ExpeOther where billdate > '2019-11-22'")
                .Where(
-                            a => !string.IsNullOrEmpty(a.DDOperatorId)
-                             &&
-                             (
-                                 (a.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.BillDate)
-                                 ||
-                                 (a.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.AuditingDate)
-                                 ||
-                                 (a.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= a.AuditingDate)
-                             )
-                             &&
-                             a.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
+                    a => !string.IsNullOrEmpty(a.DDOperatorId)
+                        &&
+                        (
+                           (a.BillDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.BillDate)
+                                            ||
+                                            (a.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= a.AuditingDate)
+                                            ||
+                                            (a.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= a.AuditingDate)
+                        )
+                        &&
+                        a.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
                 );
             var MainDatasql = MainDatamain.ToSql();
             var MainData = await MainDatamain.Count(out var total).Page(getInfoRequest.Page, getInfoRequest.Limit).ToListAsync();
@@ -223,7 +223,7 @@ namespace G3WebApiCore.Controllers
                     ||
                     (o.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.AuditingDate)
                     ||
-                    (o.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
+                    (o.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
@@ -291,7 +291,7 @@ namespace G3WebApiCore.Controllers
                     ||
                     (o.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.AuditingDate)
                     ||
-                    (o.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
+                    (o.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
@@ -362,7 +362,7 @@ namespace G3WebApiCore.Controllers
                     ||
                     (o.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.AuditingDate)
                     ||
-                    (o.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
+                    (o.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
@@ -434,7 +434,7 @@ namespace G3WebApiCore.Controllers
                     ||
                     (o.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.AuditingDate)
                     ||
-                    (o.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
+                    (o.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)
@@ -501,7 +501,7 @@ namespace G3WebApiCore.Controllers
                     ||
                     (o.AuditingDate <= getInfoRequest.EndDate && getInfoRequest.BeginDate <= o.AuditingDate)
                         ||
-                    (o.AuditingDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
+                    (o.BillDate <= getInfoRequest.BeginDate && getInfoRequest.EndDate <= o.AuditingDate)
                 )
                 &&
                 o.IsAuditing == (getInfoRequest.ApprovalState == 1 ? true : false)

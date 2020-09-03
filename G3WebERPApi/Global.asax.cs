@@ -23,10 +23,6 @@ namespace G3WebERPApi
             if (string.IsNullOrEmpty(Requestip)) { Requestip = httpa.Context.Request.ServerVariables["REMOTE_ADDR"]; }
             if (string.IsNullOrEmpty(Requestip)) { Requestip = httpa.Context.Request.UserHostAddress; }
             if (string.IsNullOrEmpty(Requestip)) { Requestip = "0.0.0.0"; }
-            //using (var reader = new StreamReader(httpa.Context.Request.InputStream, Encoding.UTF8))
-            //{
-            //    CsJson = reader.ReadToEnd();
-            //}
             string signUrl = httpa.Context.Request.Url.AbsoluteUri;
             ToolsClass.TxtLog("登录后台系统信息", ";\r\nIP地址为：" + Requestip + ";\r\n 访问接口地址：" + signUrl + ";\r\n入参：" + CsJson);
 

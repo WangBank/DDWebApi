@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>DingtalkApprovalApi</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>bin\DingtalkApprovalApi.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FreeSql.Provider.SqlServer" Version="1.8.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\default.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
+</Project>

@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G3WebERPApi", "G3WebERPApi\G3WebERPApi.csproj", "{14766C48-D32C-4394-A4EB-6DA027A45FD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G3WebApiCore", "G3WebApiCore\G3WebApiCore.csproj", "{B48BED4A-9269-4050-A626-A76A19CEFE05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "G3WebApiCore", "G3WebApiCore\G3WebApiCore.csproj", "{B48BED4A-9269-4050-A626-A76A19CEFE05}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DingtalkApprovalApi", "DingtalkApprovalApi\DingtalkApprovalApi.csproj", "{25300059-006D-4CE6-8080-A64F9BA8F60D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{B48BED4A-9269-4050-A626-A76A19CEFE05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B48BED4A-9269-4050-A626-A76A19CEFE05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B48BED4A-9269-4050-A626-A76A19CEFE05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25300059-006D-4CE6-8080-A64F9BA8F60D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25300059-006D-4CE6-8080-A64F9BA8F60D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25300059-006D-4CE6-8080-A64F9BA8F60D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25300059-006D-4CE6-8080-A64F9BA8F60D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
