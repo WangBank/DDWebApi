@@ -15,11 +15,11 @@ namespace DingtalkApprovalApi.Entities.Models
             /// <summary>
             /// 返回码
             /// </summary>
-            public int Code { get; set; }
+            public int errcode { get; set; }
             /// <summary>
             /// 消息
             /// </summary>
-            public string Message { get; set; }
+            public string errmsg { get; set; }
             /// <summary>
             /// 数据
             /// </summary>

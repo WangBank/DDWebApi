@@ -69,8 +69,8 @@ namespace JWTToken.Filter
                 var data = context.Result as OkObjectResult;
                 context.Result = new OkObjectResult(new CommonResponse
                 {
-                    Code = 0,
-                    Message = "",
+                    errcode = 0,
+                    errmsg = "",
                     TokenInfo = TokenInfo,
                     Data = data.Value
                 });
@@ -81,8 +81,8 @@ namespace JWTToken.Filter
                 var data = context.Result as BadRequestObjectResult;
                 context.Result = new BadRequestObjectResult(new CommonResponse
                 {
-                    Code = -1,
-                    Message = data.Value.ToString()
+                    errcode = -1,
+                    errmsg = data.Value.ToString()
                 });
             }
         }
@@ -93,20 +93,33 @@ namespace JWTToken.Filter
         /// <param name="context"></param>
         public void OnActionExecuting(ActionExecutingContext context)
         {
+             CommonResponse ret = new CommonResponse();
+            var methodinfo = context.ActionDescriptor.ActionConstraints[0] as Microsoft.AspNetCore.Mvc.ActionConstraints.HttpMethodActionConstraint;
+            var actionType = methodinfo.HttpMethods.AsSelect().First();
+            var requestType = context.HttpContext.Request.Method;
+
+            if (actionType != requestType)
+            {
+                ret.errcode = -1;
+                ret.errmsg = $"不允许用{requestType}请求{actionType}api";
+                context.Result = new BadRequestObjectResult(ret);
+                return;
+            }
+
             string tokenName = Configuration.GetSection("JWTConfig").GetSection("tokenName").Value;
             int WaringMinutes = int.Parse(Configuration.GetSection("JWTConfig").GetSection("WaringMinutes").Value);
             string Issuer = Configuration.GetSection("JWTConfig").GetSection("Issuer").Value;
             string Audience = Configuration.GetSection("JWTConfig").GetSection("Audience").Value;
             if (context.HttpContext.Request.Path.Value != "/api/user/login")
             {
-                CommonResponse ret = new CommonResponse();
+               
                 //获取token
                 bool HasToken = context.HttpContext.Request.Headers.TryGetValue(tokenName, out var tokenobj);
 
                 if (!HasToken)
                 {
-                    ret.Code = 201;
-                    ret.Message = "token不能为空";
+                    ret.errcode = 201;
+                    ret.errmsg = "token不能为空";
                     context.Result = new BadRequestObjectResult(ret);
                     return;
                 }
@@ -124,15 +137,15 @@ namespace JWTToken.Filter
                 });
                 if (tokenType == TokenType.Fail)
                 {
-                    ret.Code = 202;
-                    ret.Message = "token验证失败";
+                    ret.errcode = 202;
+                    ret.errmsg = "token验证失败";
                     context.Result = new BadRequestObjectResult(ret);
                     return;
                 }
                 if (tokenType == TokenType.Expired)
                 {
-                    ret.Code = 205;
-                    ret.Message = "token已经过期";
+                    ret.errcode = 205;
+                    ret.errmsg = "token已经过期";
                     context.Result = new BadRequestObjectResult(ret);
                 }
                 if (!string.IsNullOrEmpty(username))

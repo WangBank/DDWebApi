@@ -32,7 +32,7 @@ namespace DingtalkApprovalApi.JWT
         /// <param name="context"></param>
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (!context.ApiDescription.RelativePath.Contains("api/Login") && !context.ApiDescription.RelativePath.Contains("api/TokenValidata"))
+            if (!context.ApiDescription.RelativePath.ToLower().Contains("login") && !context.ApiDescription.RelativePath.Contains("api/TokenValidata"))
             {
                 string tokenName = Configuration.GetSection("JWTConfig").GetSection("tokenName").Value;
                 operation.Parameters ??= new List<OpenApiParameter>();

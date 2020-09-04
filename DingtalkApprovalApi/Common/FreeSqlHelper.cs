@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DingtalkApprovalApi.DataBase
+namespace DingtalkApprovalApi.Common
 {
     /// <summary>
     /// 标识类

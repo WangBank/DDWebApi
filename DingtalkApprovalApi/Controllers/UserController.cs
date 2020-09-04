@@ -43,8 +43,8 @@ namespace DingtalkApprovalApi.Controllers
 
             if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
             {
-                ret.Code = -1;
-                ret.Message = "用户名密码不能为空";
+                ret.errcode = -1;
+                ret.errmsg = "用户名密码不能为空";
                 return ret;
             }
 
@@ -55,8 +55,8 @@ namespace DingtalkApprovalApi.Controllers
                         { "username", user.Username },
                         { "createTime", DateTime.Now}
                     };
-                ret.Code = 0;
-                ret.Message = "登录成功";
+                ret.errcode = 0;
+                ret.errmsg = "登录成功";
                 ret.TokenInfo = tokenHelper.CreateToken(keyValuePairs);
                 ret.Data = "";
             }

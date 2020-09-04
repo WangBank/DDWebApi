@@ -1,5 +1,5 @@
 ﻿using G3WebApiCore.Commom;
-using G3WebApiCore.Model.ApiDtos;
+using DingtalkApprovalApi.Entities.Dtos;
 using G3WebApiCore.Model.FreeSqlHelper;
 using G3WebApiCore.Model.Request;
 using G3WebApiCore.Model.Response;

@@ -203,117 +203,117 @@
             过期
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalComment">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.ApprovalComment">
             <summary>
             审批意见
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalDate">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.ApprovalDate">
             <summary>
             审批时间精确到分钟
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalName">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.ApprovalName">
             <summary>
             审批人姓名
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.ApprovalStatus">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.ApprovalStatus">
             <summary>
             审批状态 0：已发送，1同意 2驳回
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.BillClassid">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.BillClassid">
             <summary>
             审批表单ID号
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.BillNo">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.BillNo">
             <summary>
             每个具体审批单编号
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.CommentsId">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.CommentsId">
             <summary>
             审批意见id，唯一值
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalComments.NodeNumber">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalComments.NodeNumber">
             <summary>
             同ApprovalNode 中的NodeNumber
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.BillClassName">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.BillClassName">
             <summary>
             审批表达模板名称，例如出差申请表、差旅费报销表等
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.BilliClassid">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.BilliClassid">
             <summary>
             审批表单模板编号，系统自动生成 guid
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.characterTypes">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.characterTypes">
             <summary>
             审批角色名称，例如发起人、部门领导、分管领导、公司领导、财务、出纳等
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.IsEnd">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.IsEnd">
             <summary>
             1表示该审批单流程结束，0未结束
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.nodeid">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.nodeid">
             <summary>
             guid 审批节点表中主键 唯一值
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.ApprovalNode.NodeNumber">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.ApprovalNode.NodeNumber">
             <summary>
             审批表单序号编号规则审批表单名称全拼首字母，例如出差申请，ccsq1…N
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.BillClass.Isrunning">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.BillClass.Isrunning">
             <summary>
             1表示 启用，2正在运行，0停止 
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.BillClass.VisibleRange">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.BillClass.VisibleRange">
             <summary>
             可见范围主要包括所有员工，部门员工，角色，选择的人员等
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.Role.EmployCode">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.Role.EmployCode">
             <summary>
             所属角色的员工工号
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.Role.Remarks">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.Role.Remarks">
             <summary>
             备注说明
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleGroupId">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.Role.RoleGroupId">
             <summary>
             角色组名称
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleId">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.Role.RoleId">
             <summary>
             角色唯一标识 guid
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.Role.RoleName">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.Role.RoleName">
             <summary>
             角色名称
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.RoleWithOrg.OrgCode">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.RoleWithOrg.OrgCode">
             <summary>
             角色id
             </summary>
         </member>
-        <member name="P:G3WebApiCore.Model.ApiDtos.RoleWithOrg.RoleId">
+        <member name="P:DingtalkApprovalApi.Entities.Dtos.RoleWithOrg.RoleId">
             <summary>
             部门编号
             </summary>

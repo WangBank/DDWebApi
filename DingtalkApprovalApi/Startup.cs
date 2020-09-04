@@ -1,4 +1,4 @@
-using DingtalkApprovalApi.DataBase;
+using DingtalkApprovalApi.Common;
 using DingtalkApprovalApi.JWT;
 using DingtalkApprovalApi.MiddleWare;
 using DingtalkApprovalApi.SwaggerModel;
@@ -34,10 +34,6 @@ namespace DingtalkApprovalApi
             Configuration = configuration;
         }
 
-        string SqlLiteConn = string.Empty;
-
-
-
         /// <summary>
         /// 获取配置文件类
         /// </summary>
@@ -49,15 +45,17 @@ namespace DingtalkApprovalApi
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            string SqlLiteConn = string.Empty;
+            string SqlServer = string.Empty;
 
 
-            SqlLiteConn = Configuration.GetConnectionString("DingDingDb");
+            SqlServer = Configuration.GetConnectionString("DingDingDb");
 
-            var fsql1 = new FreeSqlBuilder().UseConnectionString(DataType.SqlServer, SqlLiteConn)
+            var fsql1 = new FreeSqlBuilder().UseConnectionString(DataType.SqlServer, SqlServer)
                .UseAutoSyncStructure(false)
                 .Build<SqlServerFlag>();
-            services.AddSingleton(fsql1);
+            services.AddSingleton<IFreeSql>(fsql1);
+            services.AddScoped<UnitOfWorkManager>();
+            services.AddFreeRepository(null, typeof(Startup).Assembly);
             services.AddTransient<ITokenHelper, TokenHelper>();
             //读取配置文件配置的jwt相关配置
             services.Configure<JWTConfig>(Configuration.GetSection("JWTConfig"));
@@ -67,8 +65,7 @@ namespace DingtalkApprovalApi
                 Options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 Options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 
-            }).
-            AddJwtBearer();
+            }).AddJwtBearer();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -85,11 +82,10 @@ namespace DingtalkApprovalApi
                 //添加对控制器的标签(描述)
                 c.DocumentFilter<ApplyTagDescriptions>();//显示类名
                 c.CustomSchemaIds(type => type.FullName);// 可以解决相同类名会报错的问题
-                c.OperationFilter<AuthTokenHeaderParameter>();
+                c.OperationFilter<AuthTokenHeaderParameter>(); //jwt加token
             });
             services.AddScoped<TokenFilter>();
             services.AddControllers().AddNewtonsoftJson(o => o.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss");
-            services.AddCors(option => option.AddPolicy("AllowCors", all => all.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
         }
 
         /// <summary>
@@ -101,6 +97,7 @@ namespace DingtalkApprovalApi
         {
             if (env.IsDevelopment())
             {
+               
                 app.UseDeveloperExceptionPage();
             }
             
@@ -115,9 +112,15 @@ namespace DingtalkApprovalApi
                 //c.DocExpansion(DocExpansion.None);//折叠
                 c.DefaultModelsExpandDepth(-1);//不显示Schemas
             });
-            app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<LoggerMiddleware>();
             app.UseRouting();
-            app.UseCors("AllowCors");
+
+            app.UseCors(builder =>
+            {
+                string[] withOrigins = Configuration.GetSection("WithOrigins").Get<string[]>();
+                builder.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(withOrigins);
+            });
+
             app.UseAuthentication();
             app.UseAuthorization();
 

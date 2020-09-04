@@ -6,7 +6,7 @@ using G3WebApiCore.Model.FreeSqlHelper;
 using G3WebApiCore.Model.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using G3WebApiCore.Model.ApiDtos;
+using DingtalkApprovalApi.Entities.Dtos;
 using G3WebApiCore.Commom;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Cors;
